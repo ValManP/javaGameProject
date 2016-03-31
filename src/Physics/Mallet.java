@@ -7,23 +7,38 @@ package Physics;
 
 /**
  *
- * @author pozdv
+ * @author frim
  */
-public class Mallet extends Circle2f{
+
+// Класс щетка
+public class Mallet extends Circle2f
+{
     public boolean captured;
 
-            public Mallet(float x, float y, float r)
-            {
-                super(x, y, r, 1.0f);
-                captured = false;
-            }
+    public Mallet(float x, float y, float r)
+    {
+        super(x, y, r, 1.0f);
+        captured = false;
+    }
 
-            public void moveTo(float x, float y, float dt)
-            {
-                Vector2f newPosition = new Vector2f(x, y);
+    public void setNextPosition(float x, float y, float dt)
+    {
+        Vector2f newPosition = new Vector2f(x, y);
 
-                dX = Vector2f.negative(newPosition, position);
+        dX = newPosition.sub(position);
 
-                velocity = Vector2f.divideByNumber(dX, dt);
-            }
+        velocity = dX.dev(dt);
+    }
+
+    @Override
+    public void moveToNextPosition(float k)
+    {
+        // Изменение положения
+        dX = dX.mult(k);
+        position = position.add(dX);
+
+        // Обнулить вектор перемещения и изменения скорости (перемещение совершено)
+        dX = new Vector2f();
+        //dV = new Vector2f();
+    }
 }

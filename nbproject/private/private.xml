@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="1">
+        <file>
+            <url>src/Server/ClientThread.java</url>
+            <bookmark id="1">
+                <name/>
+                <line>67</line>
+                <key/>
+            </bookmark>
+        </file>
+    </editor-bookmarks>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/C:/Users/pozdv/Documents/NetBeansProjects/AirHockey/src/Server/ServerFrame.java</file>
+            <file>file:/C:/Users/pozdv/Documents/NetBeansProjects/AirHockey/src/Server/ClientThread.java</file>
+            <file>file:/C:/Users/pozdv/Documents/NetBeansProjects/AirHockey/src/Client/ClientFrame.java</file>
+            <file>file:/C:/Users/pozdv/Documents/NetBeansProjects/AirHockey/src/Server/ServerThread.java</file>
+            <file>file:/C:/Users/pozdv/Documents/NetBeansProjects/AirHockey/src/Physics/Mallet.java</file>
+            <file>file:/C:/Users/pozdv/Documents/NetBeansProjects/AirHockey/src/Client/State.java</file>
+            <file>file:/C:/Users/pozdv/Documents/NetBeansProjects/AirHockey/src/Physics/Circle2f.java</file>
+            <file>file:/C:/Users/pozdv/Documents/NetBeansProjects/AirHockey/src/Server/GameCycle.java</file>
+        </group>
+    </open-files>
+</project-private>

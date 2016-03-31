@@ -7,81 +7,91 @@ package Physics;
 
 /**
  *
- * @author pozdv
+ * @author frim
  */
-public class Vector2f {
-        public float X;
-        public float Y;
 
-        // Конструктор
-        public Vector2f(float x, float y)
-        {
-            X = x;
-            Y = y;
-        }
+// Класс вектор
+public class Vector2f
+{
+    public float X;
+    public float Y;
 
-        // Конструктор копирования
-        public Vector2f(Vector2f other)
-        {
-            X = other.X;
-            Y = other.Y;
-        }
+    // Конструктор по умолчанию
+    public Vector2f()
+    {
+        X = 0.0f;
+        Y = 0.0f;
+    }
 
-        // Сложение векторов
-        public static Vector2f sum(Vector2f v1, Vector2f v2)
-        {
-            return new Vector2f(v1.X + v2.X, v1.Y + v2.Y);
-        }
+    // Конструктор
+    public Vector2f(float x, float y)
+    {
+        X = x;
+        Y = y;
+    }
 
-        // Вычитание векторов
-        public static Vector2f negative(Vector2f v1, Vector2f v2)
-        {
-            return new Vector2f(v1.X - v2.X, v1.Y - v2.Y);
-        }
+    // Конструктор копирования
+    public Vector2f(Vector2f other)
+    {
+        X = other.X;
+        Y = other.Y;
+    }
 
-        // Скалярное произведение
-        public static float multiply(Vector2f v1, Vector2f v2)
-        {
-            return (v1.X * v2.X + v1.Y * v2.Y);
-        }
-        
-        // Умножение вектора на число
-        public static Vector2f multiplyWithNumber(Vector2f v, float a)
-        {
-            return new Vector2f(v.X * a, v.Y * a);
-        }
+    // Сложение векторов
+    public Vector2f add(Vector2f other)
+    {
+        return new Vector2f(X + other.X, Y + other.Y);
+    }
 
-        // Частное двух векторов = скалярное произведение / скалярный квадрат делителя
-        public static float divide(Vector2f v1, Vector2f v2)
-        {
-            return Vector2f.multiply(v1, v2) / v2.sqr();
-        }
+    // Вычитание векторов
+    public Vector2f sub(Vector2f other)
+    {
+        return new Vector2f(X - other.X, Y - other.Y);
+    }
 
-        // Деление вектора на число
-        public static Vector2f divideByNumber(Vector2f v, float a)
-        {
-            return new Vector2f(v.X / a, v.Y / a);
-        }
+    // Скалярное произведение
+    public float dot(Vector2f other)
+    {
+        return (X * other.X + Y * other.Y);
+    }
 
-        // Скалярный квадрат вектора
-        public float sqr()
-        {
-            return X * X + Y * Y;
-        }
+    // Умножение вектора на число
+    public Vector2f mult(float a)
+    {
+        return new Vector2f(X * a, Y * a);
+    }
 
-        // Длина вектора
-        public float magnitude()
-        {
-            return (float)Math.sqrt(sqr());
-        }
+    // Частное двух векторов = скалярное произведение / скалярный квадрат делителя
+    public float dev(Vector2f other)
+    {
+        return dot(other) / other.sqr();
+    }
 
-        // Вернуть нормированный вектор
-        public Vector2f normalize()
-        {
-            float mag = magnitude();
-            if (mag != 0.0f)
-                return Vector2f.divideByNumber(this, magnitude());
-            else
-                return this;
-        }
+    // Деление вектора на число
+    public Vector2f dev(float a)
+    {
+        return new Vector2f(X / a, Y / a);
+    }
+
+    // Скалярный квадрат вектора
+    public float sqr()
+    {
+        return X * X + Y * Y;
+    }
+
+    // Длина вектора
+    public float magnitude()
+    {
+        return (float)Math.sqrt(sqr());
+    }
+
+    // Вернуть нормированный вектор
+    public Vector2f normalize()
+    {
+        float mag = magnitude();
+        if (mag != 0.0f)
+            return dev(mag);
+        else
+            return this;
+    }
 }

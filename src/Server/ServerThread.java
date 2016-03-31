@@ -6,12 +6,13 @@
 package Server;
 
 import Client.ClientFrame;
-import Client.Message;
+import Client.State;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.RenderingHints;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -38,18 +39,21 @@ public class ServerThread extends Thread{
     ClientThread player_1, player_2;
     int client_count = 0;
     
-    Message message;
+    Client.State currentState;
+    Client.State incomingState;
+    
+    GameCycle gameCycle;
     
     public synchronized void addToLog(String s)
     {
         log.append(s + "\n");
     }
     
-    synchronized void sendToAll(Message message)
+    synchronized void sendToAll(Client.State message)
     {
         if (player_1 != null && player_2 != null) {
-            player_1.sendMessage(message);
-            player_2.sendMessage(message);
+            player_1.sendMessage(currentState);
+            player_2.sendMessage(currentState);
         }
     }
     
@@ -73,12 +77,17 @@ public class ServerThread extends Thread{
         DrawPanel panel = new DrawPanel();
         panel.setBackground(Color.white);
         panel.setSize(new Dimension(300, 400));
+        panel.setLocation(50, 50);
         mainPanel.add(panel);
         mainPanel.pack();
         mainPanel.setVisible(true);
-        mainPanel.setLocationRelativeTo(null);
+        //mainPanel.setLocationRelativeTo(null);
         
-        message = new Message();
+        currentState = new Client.State();
+        incomingState = new Client.State();
+        
+        gameCycle = new GameCycle(currentState);
+        
     }
 
     @Override
@@ -88,12 +97,12 @@ public class ServerThread extends Thread{
         {
             try {
                 Socket clientSocket = ss.accept();
-                Message m = new Message();
+                Client.State m = new Client.State();
                 
                 ClientThread ct = new ClientThread(this, clientSocket);
                 
                 client_count++;
-                m.setNumPlayer(client_count);
+                m.setPlayerNum(client_count);
                 
                 if (client_count == 1) {
                    player_1 = ct;
@@ -137,39 +146,64 @@ public class ServerThread extends Thread{
 			Graphics2D g2d = (Graphics2D) g;
                         
                         g2d.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
-                        
-                        if (player_1 != null) {
-                            message.setMallet_1(player_1.getMes().getMallet_1());
-                        }
-                        if (player_2 != null) {
-                            message.setMallet_2(player_2.getMes().getMallet_2());
-                        }
-                        
-                        //m.setPuck(message.getPuck());
-                        
-                        sendToAll(message);
                             
-                        if (message.getMallet_1() != null) {
+                        if (currentState.getMallet_1() != null) {
                             g2d.setColor(Color.green);   
-                            g2d.fillOval(message.getMallet_1().x - 10, message.getMallet_1().y - 10, 20, 20);
+                            g2d.fillOval(currentState.getMallet_1().x - 20, currentState.getMallet_1().y - 20, 40, 40);
                         }
 
-                        if (message.getMallet_2() != null) {
+                        if (currentState.getMallet_2() != null) {
                             g2d.setColor(Color.cyan);  
-                            g2d.fillOval(message.getMallet_2().x - 10, message.getMallet_2().y - 10, 20, 20);
+                            g2d.fillOval(currentState.getMallet_2().x - 20, currentState.getMallet_2().y - 20, 40, 40);
                         }
                         
-                        if (message.getPuck() != null) {
+                        if (currentState.getPuck() != null) {
                             g2d.setColor(Color.red);   
-                            g2d.fillOval(message.getPuck().x - 10, message.getPuck().y - 10, 20, 20);
+                            g2d.fillOval(currentState.getPuck().x - 20, currentState.getPuck().y - 20, 40, 40);
                         }
 
 		}
     }
     
-    public synchronized Message getMessage()
+    public synchronized Client.State getMessage()
     {
-        return message;
+        return currentState;
     }
     
+    public void game()
+    {
+        new Thread()
+            {
+
+                @Override
+                public void run() {
+                    
+                    while(true){
+                        Point m1 = null, m2 = null;
+                        
+                        if (player_1 != null) {
+                           m1 = player_1.getMes().getMallet_1();
+                            
+                           if (m1 != null) {
+                                incomingState.setMallet_1(m1);
+                           }
+                        }
+                            
+                        if (player_2 != null) {
+                           m2 = player_2.getMes().getMallet_2(); 
+                           
+                           if (m2 != null) {
+                                incomingState.setMallet_2(m2);
+                            }
+                        }
+                            
+                        if (m1 != null || m2 != null) {
+                            currentState = gameCycle.calculate(incomingState);
+                            sendToAll(currentState);
+                        }
+                    }
+                }
+                
+            }.start();
+    }
 }

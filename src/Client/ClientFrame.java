@@ -5,21 +5,22 @@
  */
 package Client;
 
+import Physics.Mallet;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.io.*;
-import java.lang.Math;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.BorderFactory;
+import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.event.MouseInputListener;
 
@@ -38,12 +39,18 @@ public class ClientFrame extends javax.swing.JFrame {
     
     Point mallet;
     
-    int num_player = -1;
+    int player_num = -1;
     
-    Message message;
+    // Game objects
+    State currentState;
+    State incomingState;
+    Rectangle gameArea;
+   
     
     ObjectInputStream inputStream;
     ObjectOutputStream outputStream;
+    
+    private Image fieldImg, yourMalletImg, puckImg, enemyMalletImg;
     
     public void ListenThread() 
     {
@@ -59,28 +66,20 @@ public class ClientFrame extends javax.swing.JFrame {
         public void run() 
         {
             try {
-                //inputStream = new ObjectInputStream(socket.getInputStream());
            
                 while (inputStream != null)
                 {
-                    Message m = (Message)inputStream.readObject();
-//                    if (num_player == 1) {
-//                        message.setMallet_2(m.getMallet_2());
-//                    } else {
-//                        message.setMallet_1(m.getMallet_1());
-//                    }
+                    incomingState = (State)inputStream.readObject();
 
-                    if (m.getMallet_1() != null) {
-                        message.setMallet_1(m.getMallet_1());
+                    if (incomingState.getMallet_1() != null) {
+                        currentState.setMallet_1(incomingState.getMallet_1());
                     }
-                    if (m.getMallet_2() != null) {
-                        message.setMallet_2(m.getMallet_2());
+                    if (incomingState.getMallet_2() != null) {
+                        currentState.setMallet_2(incomingState.getMallet_2());
                     }
-                    if (m.getPuck() != null) {
-                        message.setPuck(m.getPuck());
+                    if (incomingState.getPuck() != null) {
+                        currentState.setPuck(incomingState.getPuck());
                     }
-                   
-                    //mallet = new Point(200, 300);
                     
                 }
              } catch (IOException | ClassNotFoundException ex) {
@@ -113,46 +112,83 @@ public class ClientFrame extends javax.swing.JFrame {
 				} catch (InterruptedException ex) {}
 			}
 		}
- 
+                
 		@Override
 		public void paint(Graphics g) {
 			super.paintComponent(g);
+                        
 			Graphics2D g2d = (Graphics2D) g;
                         
+                        //g2d.drawImage(fieldImg, 0, 0, 400, 700, null);
+                        
                         g2d.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
- 
-                        if (message.getMallet_1() != null) {
-                            g2d.fillOval(message.getMallet_1().x - 10, message.getMallet_1().y - 10, 20, 20);
+                        
+                        if (currentState.getMallet_1() != null) {
+                            if (player_num == 1) {
+                                g2d.setColor(Color.green);
+                            } else {
+                                g2d.setColor(Color.red);
+                            }
+                            g2d.fillOval(currentState.getMallet_1().x - 10, currentState.getMallet_1().y - 10, 40, 40);
+                            //g2d.drawImage(yourMalletImg, currentState.getMallet_1().x - 90, currentState.getMallet_1().y - 65, 150, 100, null);
                         }
 
-                        if (message.getMallet_2() != null) {
-                            g2d.fillOval(message.getMallet_2().x - 10, message.getMallet_2().y - 10, 20, 20);
+                        if (currentState.getMallet_2() != null) {
+                            if (player_num == 2) {
+                                g2d.setColor(Color.green);
+                            } else {
+                                g2d.setColor(Color.red);
+                            }
+                            g2d.fillOval(currentState.getMallet_2().x - 20, currentState.getMallet_2().y - 20, 40, 40);
+                            //g2d.drawImage(yourMalletImg, message.getMallet_2().x - 10, message.getMallet_2().y - 10, 150, 100, null);
+                        }
+
+                        if (currentState.getPuck() != null) {
+                            g2d.setColor(Color.yellow);   
+                            g2d.fillOval(currentState.getPuck().x - 20, currentState.getPuck().y - 20, 40, 40);
+                            //g2d.drawImage(puckImg, message.getPuck().x - 50, message.getPuck().y - 50, 100, 100, null);
                         }
                         
-                        if (message.getPuck() != null) {
-                            g2d.setColor(Color.red);   
-                            g2d.fillOval(message.getPuck().x - 10, message.getPuck().y - 10, 20, 20);
-                        }
 		}
                 
                 public void mouseDragged( MouseEvent e )
                 {
-                    if (Math.abs(mallet.x - e.getX()) < 10 && Math.abs(mallet.y - e.getY()) < 10) {
-                        mallet.x = e.getX();
-                        mallet.y = e.getY();
-                        if (num_player == 1) {
-                            message.setMallet_1(mallet);
-                        } else {
-                            message.setMallet_2(mallet);
-                        }
-                        if (outputStream != null) {
-                            try {
-                                outputStream.reset();
-                                outputStream.writeObject(message);
-                            } catch (IOException ex) {
-                                Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
+                    if (mallet != null) {
+                        if (Math.abs(mallet.x - e.getX()) < 20 && Math.abs(mallet.y - e.getY()) < 20) {
+                            mallet.x = getClippedX(e.getX(), gameArea);
+                            mallet.y = getClippedY(e.getY(), gameArea);
+                            if (player_num == 1) {
+                                currentState.setMallet_1(mallet);
+                            } else {
+                                currentState.setMallet_2(mallet);
+                            }
+                            if (outputStream != null) {
+                                try {
+                                    outputStream.reset();
+                                    outputStream.writeObject(currentState);
+                                } catch (IOException ex) {
+                                    Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
+                                }
                             }
                         }
+                    }
+                }
+                
+                public int getClippedX( int oldX, Rectangle r)
+                {
+                    if (oldX <= currentState.getMalletRadius()) {
+                        return currentState.getMalletRadius();
+                    } else {
+                        return Math.min(oldX, r.width - 20);
+                    }
+                }
+                
+                public int getClippedY( int oldY, Rectangle r)
+                {
+                    if (oldY <= currentState.getMalletRadius()) {
+                        return currentState.getMalletRadius();
+                    } else {
+                        return Math.min(oldY, r.height - 20);
                     }
                 }
                 
@@ -168,7 +204,9 @@ public class ClientFrame extends javax.swing.JFrame {
                 
                 // Unused Mouse Listener Methods
                 public void mouseMoved( MouseEvent e ) {}
-                public void mouseClicked( MouseEvent e ) {}
+                public void mouseClicked( MouseEvent e ) {
+                    logArea.append(e.getPoint().toString()+"\n");
+                }
                 public void mouseEntered( MouseEvent e ) {}
                 public void mouseExited( MouseEvent e ) {}
 	}
@@ -186,11 +224,21 @@ public class ClientFrame extends javax.swing.JFrame {
         panel.setBackground(Color.white);
         panel.setSize(new Dimension(300, 400));
         this.add(panel);
-        this.pack();
+        //this.pack();
         setVisible(true);
-        this.setLocationRelativeTo(null);
+        //this.setLocationRelativeTo(null);
+        try {
+            fieldImg = ImageIO.read(new File("src/image/fieldImg.jpg"));
+            yourMalletImg = ImageIO.read(new File("src/image/malletImg.png"));
+            yourMalletImg = ImageIO.read(new File("src/image/malletImg.png"));
+            puckImg = ImageIO.read(new File("src/image/puckImg.png"));
+        } catch (IOException ex) {
+            Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
-        message = new Message();
+        currentState = new State();
+        incomingState = new State();
+        gameArea = new Rectangle(0, 0, 300, 400);
     }
 
     /**
@@ -208,6 +256,8 @@ public class ClientFrame extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setAlwaysOnTop(true);
+        setPreferredSize(new java.awt.Dimension(305, 600));
+        setResizable(false);
 
         connect.setText("Connect");
         connect.addActionListener(new java.awt.event.ActionListener() {
@@ -227,14 +277,16 @@ public class ClientFrame extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(connect)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 368, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(19, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(connect)
+                        .addGap(0, 306, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(405, Short.MAX_VALUE)
+                .addContainerGap(693, Short.MAX_VALUE)
                 .addComponent(connect)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -255,23 +307,23 @@ public class ClientFrame extends javax.swing.JFrame {
                 outputStream = new ObjectOutputStream(socket.getOutputStream());
                 inputStream = new ObjectInputStream(socket.getInputStream());
                 
-                if (num_player == -1) {
-                      num_player = ((Message)inputStream.readObject()).getNumPlayer();
+                if (player_num == -1) {
+                      player_num = ((State)inputStream.readObject()).getPlayerNum();
                 }
                 
-                if (num_player == 1) {
-                    mallet = new Point(100, 200);
-                    message.setMallet_1(mallet);
+                if (player_num == 1) {
+                    mallet = new Point(150, 50);
+                    currentState.setMallet_1(mallet);
                 } else {
-                    mallet = new Point(200, 200);
-                    message.setMallet_2(mallet);
+                    mallet = new Point(150, 250);
+                    currentState.setMallet_2(mallet);
                 }
                 
                 
                 isConnected = true; 
                         
                 logArea.append("Connected to the server\n");
-                logArea.append("You are player #"+num_player+"\n");
+                logArea.append("You are player #"+player_num+"\n");
             } 
             catch (Exception ex) 
             {

@@ -23,7 +23,6 @@ public class ServerFrame extends javax.swing.JFrame {
     ClientThread playerOne, playerTwo;
     
     ServerThread st = null;
-    GameThread gameThread = null;
     
     DrawPanel panel;
     
@@ -143,10 +142,8 @@ public class ServerFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_stopServerActionPerformed
 
     private void gameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_gameActionPerformed
-        if (gameThread == null) {
-            gameThread = new GameThread(st.getMessage(), st);
-            gameThread.start();
-        }
+
+          st.game();
     }//GEN-LAST:event_gameActionPerformed
 
     

@@ -6,7 +6,7 @@
 package Server;
 
 import Client.ClientFrame;
-import Client.Message;
+import Client.State;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -28,7 +28,7 @@ public class ClientThread extends Thread {
     ObjectInputStream inputStream;
     ObjectOutputStream outputStream;
     
-    Message message;   
+    private Client.State incomingState;   
     
     public UUID getUUID()
     {
@@ -38,7 +38,7 @@ public class ClientThread extends Thread {
     public ClientThread(ServerThread st, Socket cs)
     {
         
-        message = new Message();
+        incomingState = new Client.State();
         
         this.st = st;
         this.cs = cs;
@@ -64,7 +64,7 @@ public class ClientThread extends Thread {
                     while(f)
                     {
                         try {
-                            message = (Message)inputStream.readObject();
+                            incomingState = (Client.State)inputStream.readObject();
                         } catch (IOException | ClassNotFoundException ex) {
                             Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
                         }
@@ -74,12 +74,12 @@ public class ClientThread extends Thread {
             }.start();
     } 
     
-    public Message getMes()
+    public Client.State getMes()
     {
-       return message;
+       return incomingState;
     }
     
-    public void sendMessage(Message m)
+    public synchronized void sendMessage(Client.State m)
     {
         try {
             outputStream.reset();

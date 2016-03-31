@@ -10,9 +10,12 @@ import java.awt.Graphics;
 
 /**
  *
- * @author pozdv
+ * @author frim
  */
-public class Wall2f {
+
+// Стена от точки A до B
+public class Wall2f
+{
     public Vector2f A;
     public Vector2f B;
 
@@ -35,5 +38,11 @@ public class Wall2f {
     {
         g.setColor(color);
         g.drawLine((int)A.X, (int)A.Y, (int)B.X, (int)B.Y);
+    }
+
+    // Получить направление стены (единичный вектор из A в B)
+    public Vector2f getDirection()
+    {
+        return B.sub(A).normalize();
     }
 }
