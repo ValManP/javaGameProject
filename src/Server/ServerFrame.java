@@ -24,8 +24,6 @@ public class ServerFrame extends javax.swing.JFrame {
     
     ServerThread st = null;
     
-    DrawPanel panel;
-    
     synchronized void start()
     {
         if(st == null)

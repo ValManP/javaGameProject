@@ -122,8 +122,6 @@ public class ServerThread extends Thread{
     
     public class DrawPanel extends JPanel implements Runnable {
  
-		private long t = System.nanoTime();
- 
 		public DrawPanel() {
 			super();
 			new Thread(this).start();
