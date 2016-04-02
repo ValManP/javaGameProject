@@ -129,7 +129,7 @@ public class ClientFrame extends javax.swing.JFrame {
                             } else {
                                 g2d.setColor(Color.red);
                             }
-                            g2d.fillOval(currentState.getMallet_1().x - 10, currentState.getMallet_1().y - 10, 40, 40);
+                            g2d.fillOval(currentState.getMallet_1().x - 20, currentState.getMallet_1().y - 20, 40, 40);
                             //g2d.drawImage(yourMalletImg, currentState.getMallet_1().x - 90, currentState.getMallet_1().y - 65, 150, 100, null);
                         }
 
