@@ -6,7 +6,6 @@
 package Server;
 
 import Client.ClientFrame;
-import Client.State;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -21,7 +20,8 @@ public class ClientThread extends Thread {
     Socket cs;
     UUID id = UUID.randomUUID();
     
-    int NUM_PLAYER = -1; 
+    int player_num = -1; 
+    String player_name;
     
     JTextArea log;
     
@@ -35,6 +35,11 @@ public class ClientThread extends Thread {
         return id;
     }
     
+    public void setPlayerNum(int player_num)
+    {
+        this.player_num = player_num;
+    }
+    
     public ClientThread(ServerThread st, Socket cs)
     {
         
@@ -42,6 +47,7 @@ public class ClientThread extends Thread {
         
         this.st = st;
         this.cs = cs;
+        
         try {
             inputStream = new ObjectInputStream(cs.getInputStream());
             outputStream = new ObjectOutputStream(cs.getOutputStream());
@@ -65,6 +71,11 @@ public class ClientThread extends Thread {
                     {
                         try {
                             incomingState = (Client.State)inputStream.readObject();
+                            
+                            if (incomingState.getDisconnectedPlayer() != 0) {
+                                Disconnect();
+                                st.disconnect(player_num);
+                            }
                         } catch (IOException | ClassNotFoundException ex) {
                             Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
                         }
@@ -86,6 +97,17 @@ public class ClientThread extends Thread {
             outputStream.writeObject(m);
         } catch (IOException ex) {
             Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public synchronized void Disconnect() 
+    {
+        try 
+        {
+            //sendMessage(new Client.State(true));
+            cs.close();
+        } catch(Exception ex) {
+            log.append("Failed to disconnect. \n");
         }
     }
 }

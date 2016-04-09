@@ -1,11 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package Client;
 
-import Physics.Mallet;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -24,44 +18,40 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.event.MouseInputListener;
 
-/**
- *
- * @author pozdv
- */
 public class ClientFrame extends javax.swing.JFrame {
 
-    InetAddress ip = null;
-    int port = 2222;
-    Boolean isConnected = false;
-    Boolean isPressed = false;
+    // Connection data
+    private InetAddress ip = null;
+    private int port = 2222;
+    private boolean isConnected = false;
+    private Socket socket;
+    private Thread incomingReader;   
+    private ObjectInputStream inputStream;
+    private ObjectOutputStream outputStream;
     
-    Socket socket;
-    
-    Point mallet;
-    
-    int player_num = -1;
+    // Game data
+    private Point mallet;
+    private Image fieldImg, yourMalletImg, puckImg, enemyMalletImg;
+    private final Rectangle gameArea;
     
     // Game objects
-    State currentState;
-    State incomingState;
-    Rectangle gameArea;
-   
-    
-    ObjectInputStream inputStream;
-    ObjectOutputStream outputStream;
-    
-    private Image fieldImg, yourMalletImg, puckImg, enemyMalletImg;
-    
-    public void ListenThread() 
-    {
-         Thread IncomingReader = new Thread(new IncomingReader());
-         IncomingReader.start();
-    }
+    private final State currentState;
+    private State incomingState;
+    private int player_num = -1;
     
     //--------------------------//
+    /**
+     * Input listener
+     */
+    public void ListenThread() 
+    {
+         incomingReader = new Thread(new IncomingReader());
+         incomingReader.start();
+    }
     
     public class IncomingReader implements Runnable
     {
+
         @Override
         public void run() 
         {
@@ -88,9 +78,10 @@ public class ClientFrame extends javax.swing.JFrame {
 
         }
     }
-
     //--------------------------//
-    
+    /**
+     * Draw Panel
+     */
     public class DrawPanel extends JPanel implements Runnable, MouseInputListener {
  
 		private long t = System.nanoTime();
@@ -120,6 +111,9 @@ public class ClientFrame extends javax.swing.JFrame {
 			Graphics2D g2d = (Graphics2D) g;
                         
                         //g2d.drawImage(fieldImg, 0, 0, 400, 700, null);
+                        g2d.setColor(Color.black);
+                        g2d.drawRoundRect(0, 0, gameArea.width, gameArea.height, 20, 20);
+                        g2d.drawRect(0, 0, gameArea.width, gameArea.height/2);
                         
                         g2d.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
                         
@@ -129,7 +123,10 @@ public class ClientFrame extends javax.swing.JFrame {
                             } else {
                                 g2d.setColor(Color.red);
                             }
-                            g2d.fillOval(currentState.getMallet_1().x - 20, currentState.getMallet_1().y - 20, 40, 40);
+                            g2d.fillOval(currentState.getMallet_1().x - currentState.getMalletRadius(), 
+                                    currentState.getMallet_1().y - currentState.getMalletRadius(), 
+                                    2 * currentState.getMalletRadius(),
+                                    2 * currentState.getMalletRadius());
                             //g2d.drawImage(yourMalletImg, currentState.getMallet_1().x - 90, currentState.getMallet_1().y - 65, 150, 100, null);
                         }
 
@@ -139,22 +136,29 @@ public class ClientFrame extends javax.swing.JFrame {
                             } else {
                                 g2d.setColor(Color.red);
                             }
-                            g2d.fillOval(currentState.getMallet_2().x - 20, currentState.getMallet_2().y - 20, 40, 40);
+                            g2d.fillOval(currentState.getMallet_2().x - currentState.getMalletRadius(), 
+                                    currentState.getMallet_2().y - currentState.getMalletRadius(), 
+                                    2 * currentState.getMalletRadius(), 
+                                    2 * currentState.getMalletRadius());
                             //g2d.drawImage(yourMalletImg, message.getMallet_2().x - 10, message.getMallet_2().y - 10, 150, 100, null);
                         }
 
                         if (currentState.getPuck() != null) {
                             g2d.setColor(Color.yellow);   
-                            g2d.fillOval(currentState.getPuck().x - 20, currentState.getPuck().y - 20, 40, 40);
+                            g2d.fillOval(currentState.getPuck().x - currentState.getMalletRadius(), 
+                                    currentState.getPuck().y - currentState.getMalletRadius(), 
+                                    2 * currentState.getMalletRadius(), 
+                                    2 * currentState.getMalletRadius());
                             //g2d.drawImage(puckImg, message.getPuck().x - 50, message.getPuck().y - 50, 100, 100, null);
                         }
                         
 		}
                 
+                @Override
                 public void mouseDragged( MouseEvent e )
                 {
                     if (mallet != null) {
-                        if (Math.abs(mallet.x - e.getX()) < 20 && Math.abs(mallet.y - e.getY()) < 20) {
+                        if (Math.abs(mallet.x - e.getX()) < currentState.getMalletRadius() && Math.abs(mallet.y - e.getY()) < currentState.getMalletRadius()) {
                             mallet.x = getClippedX(e.getX(), gameArea);
                             mallet.y = getClippedY(e.getY(), gameArea);
                             if (player_num == 1) {
@@ -176,38 +180,49 @@ public class ClientFrame extends javax.swing.JFrame {
                 
                 public int getClippedX( int oldX, Rectangle r)
                 {
+                    
                     if (oldX <= currentState.getMalletRadius()) {
                         return currentState.getMalletRadius();
                     } else {
-                        return Math.min(oldX, r.width - 20);
+                        return Math.min(oldX, r.width - currentState.getMalletRadius());
                     }
                 }
                 
                 public int getClippedY( int oldY, Rectangle r)
                 {
-                    if (oldY <= currentState.getMalletRadius()) {
-                        return currentState.getMalletRadius();
+                    int delta = 0;
+                    
+                    if (player_num == 2) {
+                        delta = r.height / 2;
+                    }
+
+                    if (oldY <= delta + currentState.getMalletRadius()) {
+                        return delta + currentState.getMalletRadius();
                     } else {
-                        return Math.min(oldY, r.height - 20);
+                        if (player_num == 1) {
+                            delta = r.height / 2;
+                        } else {
+                            delta = 0;
+                        }
+                        return Math.min(oldY, r.height - delta - currentState.getMalletRadius());
                     }
                 }
-                
-                public void mousePressed( MouseEvent e )
-                {
-                    
-                }
 
-                public void mouseReleased( MouseEvent e )
-                {
-                   
-                }
-                
-                // Unused Mouse Listener Methods
-                public void mouseMoved( MouseEvent e ) {}
+                @Override
                 public void mouseClicked( MouseEvent e ) {
                     logArea.append(e.getPoint().toString()+"\n");
                 }
+                
+                // Unused Mouse Listener Methods
+                @Override
+                public void mousePressed( MouseEvent e ) {}
+                @Override
+                public void mouseMoved( MouseEvent e ) {}
+                @Override
+                public void mouseReleased( MouseEvent e ) {}
+                @Override
                 public void mouseEntered( MouseEvent e ) {}
+                @Override
                 public void mouseExited( MouseEvent e ) {}
 	}
     
@@ -222,11 +237,10 @@ public class ClientFrame extends javax.swing.JFrame {
         
         DrawPanel panel = new DrawPanel();
         panel.setBackground(Color.white);
-        panel.setSize(new Dimension(300, 400));
+        panel.setSize(new Dimension(400, 700));
         this.add(panel);
-        //this.pack();
         setVisible(true);
-        //this.setLocationRelativeTo(null);
+        
         try {
             fieldImg = ImageIO.read(new File("src/image/fieldImg.jpg"));
             yourMalletImg = ImageIO.read(new File("src/image/malletImg.png"));
@@ -238,7 +252,7 @@ public class ClientFrame extends javax.swing.JFrame {
         
         currentState = new State();
         incomingState = new State();
-        gameArea = new Rectangle(0, 0, 300, 400);
+        gameArea = new Rectangle(0, 0, 400, 700);
     }
 
     /**
@@ -253,10 +267,18 @@ public class ClientFrame extends javax.swing.JFrame {
         connect = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         logArea = new javax.swing.JTextArea();
+        lb_address = new javax.swing.JLabel();
+        tf_address = new javax.swing.JTextField();
+        lb_port = new javax.swing.JLabel();
+        tf_port = new javax.swing.JTextField();
+        b_disconnect = new javax.swing.JButton();
+        nameTextField = new javax.swing.JTextField();
+        startGameButton = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setAlwaysOnTop(true);
-        setPreferredSize(new java.awt.Dimension(305, 600));
+        setPreferredSize(new java.awt.Dimension(410, 960));
         setResizable(false);
 
         connect.setText("Connect");
@@ -270,6 +292,42 @@ public class ClientFrame extends javax.swing.JFrame {
         logArea.setRows(5);
         jScrollPane1.setViewportView(logArea);
 
+        lb_address.setText("Address : ");
+
+        tf_address.setText("localhost");
+        tf_address.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tf_addressActionPerformed(evt);
+            }
+        });
+
+        lb_port.setText("Port :");
+
+        tf_port.setText("2222");
+        tf_port.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tf_portActionPerformed(evt);
+            }
+        });
+
+        b_disconnect.setText("Disconnect");
+        b_disconnect.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                b_disconnectActionPerformed(evt);
+            }
+        });
+
+        nameTextField.setText("Your name");
+
+        startGameButton.setText("Start");
+        startGameButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                startGameButtonActionPerformed(evt);
+            }
+        });
+
+        jButton2.setText("Pause");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -277,21 +335,51 @@ public class ClientFrame extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(connect)
-                        .addGap(0, 306, Short.MAX_VALUE)))
+                        .addComponent(nameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(startGameButton, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(31, 31, 31)
+                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(connect, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(b_disconnect, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(29, 29, 29)
+                        .addComponent(lb_address, javax.swing.GroupLayout.DEFAULT_SIZE, 56, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tf_address, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(19, 19, 19)
+                        .addComponent(lb_port, javax.swing.GroupLayout.DEFAULT_SIZE, 35, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(tf_port, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane1))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(693, Short.MAX_VALUE)
-                .addComponent(connect)
+                .addContainerGap(578, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(nameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(startGameButton)
+                    .addComponent(jButton2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(16, 16, 16))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(connect)
+                    .addComponent(lb_address)
+                    .addComponent(tf_address, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lb_port)
+                    .addComponent(tf_port, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(b_disconnect)
+                .addGap(4, 4, 4))
         );
+
+        startGameButton.getAccessibleContext().setAccessibleName("startGameButton");
+        jButton2.getAccessibleContext().setAccessibleName("pauseButton");
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -302,7 +390,14 @@ public class ClientFrame extends javax.swing.JFrame {
 
             try 
             {
-                socket = new Socket(InetAddress.getLocalHost(), port);
+                if (tf_address.getText().equals("localhost")) {
+                    ip = InetAddress.getLocalHost();
+                } else {
+                    ip = InetAddress.getByName(tf_address.getText());
+                }
+                port = Integer.valueOf(tf_port.getText());
+                
+                socket = new Socket(ip, port);
  
                 outputStream = new ObjectOutputStream(socket.getOutputStream());
                 inputStream = new ObjectInputStream(socket.getInputStream());
@@ -310,15 +405,6 @@ public class ClientFrame extends javax.swing.JFrame {
                 if (player_num == -1) {
                       player_num = ((State)inputStream.readObject()).getPlayerNum();
                 }
-                
-                if (player_num == 1) {
-                    mallet = new Point(150, 50);
-                    currentState.setMallet_1(mallet);
-                } else {
-                    mallet = new Point(150, 250);
-                    currentState.setMallet_2(mallet);
-                }
-                
                 
                 isConnected = true; 
                         
@@ -338,6 +424,70 @@ public class ClientFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_connectActionPerformed
 
+    private void tf_addressActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tf_addressActionPerformed
+
+    }//GEN-LAST:event_tf_addressActionPerformed
+
+    private void tf_portActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tf_portActionPerformed
+
+    }//GEN-LAST:event_tf_portActionPerformed
+
+    private void b_disconnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b_disconnectActionPerformed
+        sendDisconnect();
+        Disconnect();
+    }//GEN-LAST:event_b_disconnectActionPerformed
+
+    private void startGameButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startGameButtonActionPerformed
+        if (player_num == 1) {
+            mallet = new Point(gameArea.width / 2, 50);
+            currentState.setMallet_1(mallet);
+        } else {
+            mallet = new Point(gameArea.width / 2, gameArea.height - 50);
+            currentState.setMallet_2(mallet);
+        }
+
+        currentState.setPuck(new Point(gameArea.width / 2, gameArea.height / 2));
+    }//GEN-LAST:event_startGameButtonActionPerformed
+
+    public void sendDisconnect() 
+    {
+        try
+        {
+            currentState.setDisconnectedPlayer(player_num);
+            outputStream.reset();
+            outputStream.writeObject(currentState);
+        } catch (Exception e) 
+        {
+            logArea.append("Could not send Disconnect message.\n");
+        }
+    }
+    
+    public void Disconnect()
+    {
+        try 
+        {
+            logArea.append("Disconnected.\n");
+            incomingReader.stop();
+            socket.close();
+        } catch(Exception ex) {
+            logArea.append("Failed to disconnect. \n");
+        }
+        isConnected = false;
+    }
+    
+    public void sendName(String name) 
+    {
+        try
+        {
+            currentState.setPlayerName(name);
+            outputStream.reset();
+            outputStream.writeObject(currentState);
+        } catch (Exception e) 
+        {
+            logArea.append("Could not send sendName message.\n");
+        }
+    }
+    
     /**
      * @param args the command line arguments
      */
@@ -374,8 +524,16 @@ public class ClientFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton b_disconnect;
     private javax.swing.JButton connect;
+    private javax.swing.JButton jButton2;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lb_address;
+    private javax.swing.JLabel lb_port;
     private javax.swing.JTextArea logArea;
+    private javax.swing.JTextField nameTextField;
+    private javax.swing.JButton startGameButton;
+    private javax.swing.JTextField tf_address;
+    private javax.swing.JTextField tf_port;
     // End of variables declaration//GEN-END:variables
 }

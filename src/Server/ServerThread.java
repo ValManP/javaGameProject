@@ -5,9 +5,7 @@
  */
 package Server;
 
-import Client.ClientFrame;
-import Client.State;
-import java.awt.Canvas;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -18,15 +16,12 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
-import javax.swing.event.MouseInputListener;
 
 public class ServerThread extends Thread{
     JTextArea log;
@@ -43,6 +38,7 @@ public class ServerThread extends Thread{
     Client.State incomingState;
     
     GameCycle gameCycle;
+    DBInterface dbInterface;
     
     public synchronized void addToLog(String s)
     {
@@ -76,18 +72,22 @@ public class ServerThread extends Thread{
         
         DrawPanel panel = new DrawPanel();
         panel.setBackground(Color.white);
-        panel.setSize(new Dimension(300, 400));
+        panel.setSize(new Dimension(400, 700));
         panel.setLocation(50, 50);
         mainPanel.add(panel);
         mainPanel.pack();
         mainPanel.setVisible(true);
-        //mainPanel.setLocationRelativeTo(null);
         
         currentState = new Client.State();
         incomingState = new Client.State();
         
         gameCycle = new GameCycle(currentState);
-        
+        dbInterface = new DBInterface(log);
+        try {
+            dbInterface.connect();
+        } catch (ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
@@ -101,19 +101,29 @@ public class ServerThread extends Thread{
                 
                 ClientThread ct = new ClientThread(this, clientSocket);
                 
-                client_count++;
-                m.setPlayerNum(client_count);
+                ct.player_name = "TEST";//incomingState.getPlayerName();
                 
-                if (client_count == 1) {
-                   player_1 = ct;
-                } else if (client_count == 2) {
-                   player_2 = ct;
-                }             
+                if (dbInterface.findUserByName(ct.player_name) == 0) {
+                    dbInterface.addUser(ct.player_name);
+                    addToLog("Player not found. Add " + ct.player_name + " to game DB. \n");
+                }
+                
+                
+                if (player_1 == null) {
+                    player_1 = ct;
+                    m.setPlayerNum(1);
+                    ct.setPlayerNum(1);
+                    
+                } else if (player_2 == null) {
+                    player_2 = ct;
+                    m.setPlayerNum(2);
+                    ct.setPlayerNum(2);
+                }
                 
                 ct.sendMessage(m);
 
-                addToLog("Player " + client_count + " connect to the game. \n");
-            } catch (IOException ex) {
+                addToLog("Player " + ct.player_name + " connect to the game. \n");
+            } catch (IOException | SQLException ex) {
                 Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
@@ -121,6 +131,8 @@ public class ServerThread extends Thread{
     }
     
     public class DrawPanel extends JPanel implements Runnable {
+ 
+		private long t = System.nanoTime();
  
 		public DrawPanel() {
 			super();
@@ -166,6 +178,18 @@ public class ServerThread extends Thread{
     public synchronized Client.State getMessage()
     {
         return currentState;
+    }
+    
+    public void disconnect(int player_num) {
+        if (player_num == 1) {
+            addToLog("Player 1 has disconnected");
+            player_1.interrupt();
+            player_1 = null;
+        } else if (player_num == 2) {
+            addToLog("Player 2 has disconnected");
+            player_2.interrupt();
+            player_2 = null;
+        }
     }
     
     public void game()

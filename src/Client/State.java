@@ -13,12 +13,20 @@ import java.awt.Point;
  * @author pozdv
  */
 public class State implements Serializable {
+    // Player data
     private int player_num;
+    private String player_name;
     
+    // Game data
     private Point puck;
     private Point mallet_1, mallet_2;
     
     private int malletRadius = 20;
+    
+    private int disconnectedPlayer = 0;
+    private boolean disconnected = false;
+
+    
 
     public State(Point puck, Point mallet_1, Point mallet_2) {
         this.puck = puck;
@@ -28,6 +36,10 @@ public class State implements Serializable {
 
     public State() {
         
+    }
+    
+    public State(boolean disconnect) {
+        disconnected = disconnect;
     }
 
     public Point getMallet_1() {
@@ -66,5 +78,27 @@ public class State implements Serializable {
         return malletRadius;
     }
             
+    public int getDisconnectedPlayer() {
+        return disconnectedPlayer;
+    }
+
+    public void setDisconnectedPlayer(int disconnectedPlayer) {
+        this.disconnectedPlayer = disconnectedPlayer;
+    }
     
+    public boolean isDisconnected() {
+        return disconnected;
+    }
+
+    public void setDisconnected(boolean disconnected) {
+        this.disconnected = disconnected;
+    }
+    
+    public String getPlayerName() {
+        return player_name;
+    }
+
+    public void setPlayerName(String player_name) {
+        this.player_name = player_name;
+    }
 }
