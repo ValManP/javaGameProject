@@ -87,7 +87,6 @@ public class ServerThread extends Thread{
         incomingState = new Client.State();
         
         gameCycle = new GameCycle(currentState);
-        
     }
 
     @Override
@@ -117,50 +116,48 @@ public class ServerThread extends Thread{
                 Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        
     }
     
     public class DrawPanel extends JPanel implements Runnable {
  
-		public DrawPanel() {
-			super();
-			new Thread(this).start();
-                        
-		}
- 
-		@Override
-		public void run() {
-			while (true) {
-				repaint();
-				try {
-					Thread.sleep(5);
-				} catch (InterruptedException ex) {}
-			}
-		}
- 
-		@Override
-		public void paint(Graphics g) {
-			super.paintComponent(g);
-			Graphics2D g2d = (Graphics2D) g;
-                        
-                        g2d.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
-                            
-                        if (currentState.getMallet_1() != null) {
-                            g2d.setColor(Color.green);   
-                            g2d.fillOval(currentState.getMallet_1().x - 20, currentState.getMallet_1().y - 20, 40, 40);
-                        }
+        public DrawPanel() {
+            super();
+            new Thread(this).start();
 
-                        if (currentState.getMallet_2() != null) {
-                            g2d.setColor(Color.cyan);  
-                            g2d.fillOval(currentState.getMallet_2().x - 20, currentState.getMallet_2().y - 20, 40, 40);
-                        }
-                        
-                        if (currentState.getPuck() != null) {
-                            g2d.setColor(Color.red);   
-                            g2d.fillOval(currentState.getPuck().x - 20, currentState.getPuck().y - 20, 40, 40);
-                        }
+        }
 
-		}
+        @Override
+        public void run() {
+            while (true) {
+                    repaint();
+                    try {
+                            Thread.sleep(5);
+                    } catch (InterruptedException ex) {}
+            }
+        }
+
+        @Override
+        public void paint(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g;
+
+            g2d.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
+
+            if (currentState.getMallet_1() != null) {
+                g2d.setColor(Color.green);   
+                g2d.fillOval(currentState.getMallet_1().x - 20, currentState.getMallet_1().y - 20, 40, 40);
+            }
+
+            if (currentState.getMallet_2() != null) {
+                g2d.setColor(Color.cyan);  
+                g2d.fillOval(currentState.getMallet_2().x - 20, currentState.getMallet_2().y - 20, 40, 40);
+            }
+
+            if (currentState.getPuck() != null) {
+                g2d.setColor(Color.red);   
+                g2d.fillOval(currentState.getPuck().x - 20, currentState.getPuck().y - 20, 40, 40);
+            }
+        }
     }
     
     public synchronized Client.State getMessage()
@@ -171,37 +168,46 @@ public class ServerThread extends Thread{
     public void game()
     {
         new Thread()
-            {
+        {
+            @Override
+            public void run() {
 
-                @Override
-                public void run() {
-                    
-                    while(true){
-                        Point m1 = null, m2 = null;
-                        
-                        if (player_1 != null) {
-                           m1 = player_1.getMes().getMallet_1();
-                            
-                           if (m1 != null) {
-                                incomingState.setMallet_1(m1);
-                           }
+                while(true){
+                    Point m1 = null, m2 = null;
+
+                    if (player_1 != null) {
+                        m1 = player_1.getMes().getMallet_1();
+
+                        if (m1 != null) {
+                            incomingState.setMallet_1(m1);
+                       }
+                    }
+
+                    if (player_2 != null) {
+                        m2 = player_2.getMes().getMallet_2(); 
+
+                        if (m2 != null) {
+                            incomingState.setMallet_2(m2);
                         }
-                            
-                        if (player_2 != null) {
-                           m2 = player_2.getMes().getMallet_2(); 
-                           
-                           if (m2 != null) {
-                                incomingState.setMallet_2(m2);
+                    }
+
+                    if (m1 != null || m2 != null) {
+                        currentState = gameCycle.calculate(incomingState);
+                        sendToAll(currentState);
+
+                        float elapsedMilliTime = gameCycle.getElapsedNanoTime() / 1000.0f;
+                        float toSleep = 17.0f - elapsedMilliTime;
+                        if (toSleep > 0.0f)
+                        {
+                            try {
+                                Thread.sleep((long)toSleep);
+                            } catch (InterruptedException ex) {
+                                Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
                             }
-                        }
-                            
-                        if (m1 != null || m2 != null) {
-                            currentState = gameCycle.calculate(incomingState);
-                            sendToAll(currentState);
                         }
                     }
                 }
-                
-            }.start();
+            }
+        }.start();
     }
 }

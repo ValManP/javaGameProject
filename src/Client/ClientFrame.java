@@ -85,131 +85,125 @@ public class ClientFrame extends javax.swing.JFrame {
              } catch (IOException | ClassNotFoundException ex) {
                 Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
-
         }
     }
 
     //--------------------------//
     
     public class DrawPanel extends JPanel implements Runnable, MouseInputListener {
- 
-		private long t = System.nanoTime();
- 
-		public DrawPanel() {
-			super();
-                        addMouseListener(this);
-                        addMouseMotionListener(this);
-			new Thread(this).start();
-                        
-		}
- 
-		@Override
-		public void run() {
-			while (true) {
-				repaint();
-				try {
-					Thread.sleep(5);
-				} catch (InterruptedException ex) {}
-			}
-		}
-                
-		@Override
-		public void paint(Graphics g) {
-			super.paintComponent(g);
-                        
-			Graphics2D g2d = (Graphics2D) g;
-                        
-                        //g2d.drawImage(fieldImg, 0, 0, 400, 700, null);
-                        
-                        g2d.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
-                        
-                        if (currentState.getMallet_1() != null) {
-                            if (player_num == 1) {
-                                g2d.setColor(Color.green);
-                            } else {
-                                g2d.setColor(Color.red);
-                            }
-                            g2d.fillOval(currentState.getMallet_1().x - 20, currentState.getMallet_1().y - 20, 40, 40);
-                            //g2d.drawImage(yourMalletImg, currentState.getMallet_1().x - 90, currentState.getMallet_1().y - 65, 150, 100, null);
-                        }
+        public DrawPanel() {
+            super();
+            addMouseListener(this);
+            addMouseMotionListener(this);
+            new Thread(this).start();
+        }
 
-                        if (currentState.getMallet_2() != null) {
-                            if (player_num == 2) {
-                                g2d.setColor(Color.green);
-                            } else {
-                                g2d.setColor(Color.red);
-                            }
-                            g2d.fillOval(currentState.getMallet_2().x - 20, currentState.getMallet_2().y - 20, 40, 40);
-                            //g2d.drawImage(yourMalletImg, message.getMallet_2().x - 10, message.getMallet_2().y - 10, 150, 100, null);
-                        }
+        @Override
+        public void run() {
+            while (true) {
+                repaint();
+                try {
+                    Thread.sleep(5);
+                } catch (InterruptedException ex) {}
+            }
+        }
 
-                        if (currentState.getPuck() != null) {
-                            g2d.setColor(Color.yellow);   
-                            g2d.fillOval(currentState.getPuck().x - 20, currentState.getPuck().y - 20, 40, 40);
-                            //g2d.drawImage(puckImg, message.getPuck().x - 50, message.getPuck().y - 50, 100, 100, null);
-                        }
-                        
-		}
-                
-                public void mouseDragged( MouseEvent e )
-                {
-                    if (mallet != null) {
-                        if (Math.abs(mallet.x - e.getX()) < 20 && Math.abs(mallet.y - e.getY()) < 20) {
-                            mallet.x = getClippedX(e.getX(), gameArea);
-                            mallet.y = getClippedY(e.getY(), gameArea);
-                            if (player_num == 1) {
-                                currentState.setMallet_1(mallet);
-                            } else {
-                                currentState.setMallet_2(mallet);
-                            }
-                            if (outputStream != null) {
-                                try {
-                                    outputStream.reset();
-                                    outputStream.writeObject(currentState);
-                                } catch (IOException ex) {
-                                    Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
-                                }
-                            }
-                        }
-                    }
+        @Override
+        public void paint(Graphics g) {
+            super.paintComponent(g);
+
+            Graphics2D g2d = (Graphics2D) g;
+
+            //g2d.drawImage(fieldImg, 0, 0, 400, 700, null);
+
+            g2d.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
+
+            if (currentState.getMallet_1() != null) {
+                if (player_num == 1) {
+                    g2d.setColor(Color.green);
+                } else {
+                    g2d.setColor(Color.red);
                 }
-                
-                public int getClippedX( int oldX, Rectangle r)
-                {
-                    if (oldX <= currentState.getMalletRadius()) {
-                        return currentState.getMalletRadius();
+                g2d.fillOval(currentState.getMallet_1().x - 20, currentState.getMallet_1().y - 20, 40, 40);
+                //g2d.drawImage(yourMalletImg, currentState.getMallet_1().x - 90, currentState.getMallet_1().y - 65, 150, 100, null);
+            }
+
+            if (currentState.getMallet_2() != null) {
+                if (player_num == 2) {
+                    g2d.setColor(Color.green);
+                } else {
+                    g2d.setColor(Color.red);
+                }
+                g2d.fillOval(currentState.getMallet_2().x - 20, currentState.getMallet_2().y - 20, 40, 40);
+                //g2d.drawImage(yourMalletImg, message.getMallet_2().x - 10, message.getMallet_2().y - 10, 150, 100, null);
+            }
+
+            if (currentState.getPuck() != null) {
+                g2d.setColor(Color.yellow);   
+                g2d.fillOval(currentState.getPuck().x - 20, currentState.getPuck().y - 20, 40, 40);
+                //g2d.drawImage(puckImg, message.getPuck().x - 50, message.getPuck().y - 50, 100, 100, null);
+            }
+        }
+
+        public void mouseDragged( MouseEvent e )
+        {
+            if (mallet != null) {
+                if (Math.abs(mallet.x - e.getX()) < 20 && Math.abs(mallet.y - e.getY()) < 20) {
+                    mallet.x = getClippedX(e.getX(), gameArea);
+                    mallet.y = getClippedY(e.getY(), gameArea);
+                    if (player_num == 1) {
+                        currentState.setMallet_1(mallet);
                     } else {
-                        return Math.min(oldX, r.width - 20);
+                        currentState.setMallet_2(mallet);
+                    }
+                    if (outputStream != null) {
+                        try {
+                            outputStream.reset();
+                            outputStream.writeObject(currentState);
+                        } catch (IOException ex) {
+                            Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                     }
                 }
-                
-                public int getClippedY( int oldY, Rectangle r)
-                {
-                    if (oldY <= currentState.getMalletRadius()) {
-                        return currentState.getMalletRadius();
-                    } else {
-                        return Math.min(oldY, r.height - 20);
-                    }
-                }
-                
-                public void mousePressed( MouseEvent e )
-                {
-                    
-                }
+            }
+        }
 
-                public void mouseReleased( MouseEvent e )
-                {
-                   
-                }
-                
-                // Unused Mouse Listener Methods
-                public void mouseMoved( MouseEvent e ) {}
-                public void mouseClicked( MouseEvent e ) {
-                    logArea.append(e.getPoint().toString()+"\n");
-                }
-                public void mouseEntered( MouseEvent e ) {}
-                public void mouseExited( MouseEvent e ) {}
-	}
+        public int getClippedX( int oldX, Rectangle r)
+        {
+            if (oldX <= currentState.getMalletRadius()) {
+                return currentState.getMalletRadius();
+            } else {
+                return Math.min(oldX, r.width - 20);
+            }
+        }
+
+        public int getClippedY( int oldY, Rectangle r)
+        {
+            if (oldY <= currentState.getMalletRadius()) {
+                return currentState.getMalletRadius();
+            } else {
+                return Math.min(oldY, r.height - 20);
+            }
+        }
+
+        public void mousePressed( MouseEvent e )
+        {
+
+        }
+
+        public void mouseReleased( MouseEvent e )
+        {
+
+        }
+
+        // Unused Mouse Listener Methods
+        public void mouseMoved( MouseEvent e ) {}
+        public void mouseClicked( MouseEvent e ) {
+            logArea.append(e.getPoint().toString()+"\n");
+        }
+        public void mouseEntered( MouseEvent e ) {}
+        public void mouseExited( MouseEvent e ) {}
+    }
     
 
     //--------------------------//
