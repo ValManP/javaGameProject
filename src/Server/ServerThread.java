@@ -27,8 +27,8 @@ public class ServerThread extends Thread{
     JTextArea log;
     boolean f = true;
     
-    int port = 2222;
-    InetAddress ip = null;
+    int port;
+    InetAddress ip;
     
     ServerSocket ss;
     ClientThread player_1, player_2;
@@ -56,19 +56,30 @@ public class ServerThread extends Thread{
     synchronized void stopServer()
     {
         f = false;
+        currentState.setDisconnected(true);
+        if (player_1 != null) {
+            player_1.sendMessage(currentState);
+            player_1.Disconnect();
+            player_1.interrupt();
+            player_1 = null;
+        }
+        if (player_2 != null) {
+            player_2.sendMessage(currentState);
+            player_2.Disconnect();
+            player_2.interrupt();
+            player_2 = null;
+        }
+        try {
+            ss.close();
+        } catch (IOException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
         stop();
     }
     
     ServerThread(JTextArea log, JFrame mainPanel)
     {
         this.log = log;
-        
-        try {
-            ip = InetAddress.getLocalHost();
-            ss = new ServerSocket(port, 0, ip);
-        } catch (IOException ex) {
-            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
-        }
         
         DrawPanel panel = new DrawPanel();
         panel.setBackground(Color.white);
@@ -93,6 +104,12 @@ public class ServerThread extends Thread{
     @Override
     public void run() {
         
+        try {
+            ss = new ServerSocket(port, 0, ip);
+        } catch (IOException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         while (f == true) 
         {
             try {
@@ -102,8 +119,8 @@ public class ServerThread extends Thread{
                 ClientThread ct = new ClientThread(this, clientSocket);
                 
                 if (dbInterface.findUserByName(ct.player_name) == 0) {
+                    addToLog("Player not found. Add " + ct.player_name + " to game DB.");
                     dbInterface.addUser(ct.player_name);
-                    addToLog("Player not found. Add " + ct.player_name + " to game DB. \n");
                 }
                 
                 
@@ -120,7 +137,7 @@ public class ServerThread extends Thread{
                 
                 ct.sendMessage(m);
 
-                addToLog("Player " + ct.player_name + " connect to the game. \n");
+                addToLog("Player " + ct.player_name + " connect to the game.");
             } catch (IOException | SQLException ex) {
                 Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -230,5 +247,10 @@ public class ServerThread extends Thread{
                 }
             }
         }.start();
+    }
+    
+    public void setConnectionData(InetAddress _ip, int _port) {
+        ip = _ip;
+        port = _port;
     }
 }

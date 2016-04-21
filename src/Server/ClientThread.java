@@ -78,6 +78,7 @@ public class ClientThread extends Thread {
                             incomingState = (Client.State)inputStream.readObject();
                             
                             if (incomingState.getDisconnectedPlayer() != 0) {
+                                incomingState.setDisconnectedPlayer(0);
                                 Disconnect();
                                 st.disconnect(player_num);
                             }

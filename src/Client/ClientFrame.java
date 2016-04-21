@@ -22,7 +22,7 @@ public class ClientFrame extends javax.swing.JFrame {
 
     // Connection data
     private InetAddress ip = null;
-    private int port = 2222;
+    private int port;
     private boolean isConnected = false;
     private Socket socket;
     private Thread incomingReader;   
@@ -71,7 +71,11 @@ public class ClientFrame extends javax.swing.JFrame {
                         currentState.setPuck(incomingState.getPuck());
                     }
                     
+                    if (incomingState.isDisconnected()) {
+                        break;
+                    }
                 }
+                Disconnect();
              } catch (IOException | ClassNotFoundException ex) {
                 Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -165,7 +169,7 @@ public class ClientFrame extends javax.swing.JFrame {
                             } else {
                                 currentState.setMallet_2(mallet);
                             }
-                            if (outputStream != null) {
+                            if (outputStream != null && !socket.isClosed()) {
                                 try {
                                     outputStream.reset();
                                     outputStream.writeObject(currentState);
@@ -410,7 +414,7 @@ public class ClientFrame extends javax.swing.JFrame {
                 isConnected = true; 
                         
                 logArea.append("Connected to the server\n");
-                logArea.append("You are player #"+player_num+"\n");
+                logArea.append("You are player #" + player_num + "\n");
             } 
             catch (Exception ex) 
             {
@@ -457,6 +461,7 @@ public class ClientFrame extends javax.swing.JFrame {
             currentState.setDisconnectedPlayer(player_num);
             outputStream.reset();
             outputStream.writeObject(currentState);
+            currentState.setDisconnectedPlayer(0);
         } catch (Exception e) 
         {
             logArea.append("Could not send Disconnect message.\n");
@@ -467,13 +472,13 @@ public class ClientFrame extends javax.swing.JFrame {
     {
         try 
         {
+            isConnected = false;
             logArea.append("Disconnected.\n");
             incomingReader.stop();
             socket.close();
         } catch(Exception ex) {
             logArea.append("Failed to disconnect. \n");
         }
-        isConnected = false;
     }
     
     public String getName() 
