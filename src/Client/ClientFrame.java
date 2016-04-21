@@ -75,7 +75,6 @@ public class ClientFrame extends javax.swing.JFrame {
              } catch (IOException | ClassNotFoundException ex) {
                 Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
-
         }
     }
     //--------------------------//
@@ -396,11 +395,13 @@ public class ClientFrame extends javax.swing.JFrame {
                     ip = InetAddress.getByName(tf_address.getText());
                 }
                 port = Integer.valueOf(tf_port.getText());
-                
+                 
                 socket = new Socket(ip, port);
- 
+                
                 outputStream = new ObjectOutputStream(socket.getOutputStream());
                 inputStream = new ObjectInputStream(socket.getInputStream());
+                
+                sendName();
                 
                 if (player_num == -1) {
                       player_num = ((State)inputStream.readObject()).getPlayerNum();
@@ -475,16 +476,24 @@ public class ClientFrame extends javax.swing.JFrame {
         isConnected = false;
     }
     
-    public void sendName(String name) 
+    public String getName() 
     {
-        try
-        {
-            currentState.setPlayerName(name);
+        if (!nameTextField.getText().equals("Your name")
+                && !nameTextField.getText().equals("")) {
+            return nameTextField.getText();
+        } else {
+            return "Anonym";
+        } 
+    }
+    
+    public void sendName() 
+    {
+        try {
+            currentState.setPlayerName(getName());
             outputStream.reset();
             outputStream.writeObject(currentState);
-        } catch (Exception e) 
-        {
-            logArea.append("Could not send sendName message.\n");
+        } catch (IOException ex) {
+            Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     

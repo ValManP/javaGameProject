@@ -52,8 +52,13 @@ public class ClientThread extends Thread {
             inputStream = new ObjectInputStream(cs.getInputStream());
             outputStream = new ObjectOutputStream(cs.getOutputStream());
             
+            do {
+                incomingState = (Client.State)inputStream.readObject();
+                player_name = incomingState.getPlayerName();
+            } while (incomingState.getPlayerName() == null);
+            
             this.start();
-        } catch (IOException ex) {
+        } catch (IOException | ClassNotFoundException ex) {
             Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
         }
         

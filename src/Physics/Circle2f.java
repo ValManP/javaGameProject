@@ -52,11 +52,6 @@ public class Circle2f
     {
         return radius;
     }
-    
-    public void setPosition(Vector2f pos)
-    {
-        position = pos;
-    }
 
     // Конструктор
     public Circle2f(float x, float y, float r, float m)
@@ -72,12 +67,6 @@ public class Circle2f
         // Ускорение = Mu * N = Mu * m * g
         acceleration = Physics.Mu * Physics.G * mass;
     }
-
-    // Нарисовать круг
-//    public void draw(Graphics g, Brush brush)
-//    {
-//        g.FillEllipse(brush, position.X - radius, position.Y - radius, 2 * radius, 2 * radius);
-//    }
 
     // Придать импульс кругу
     public void addVelocity(Vector2f v)
@@ -180,11 +169,12 @@ public class Circle2f
 
         // Вектор между центрами кругов
         Vector2f C = other.position.sub(position);
+        // Расстояние между кругами
+        float lengthC = C.magnitude();
 
         // Сможет ли вообще первый круг достичь второго в лучшем случае
-        float dist = C.magnitude();
         float sumRadii = (other.radius + radius);
-        dist -= sumRadii;
+        float dist = lengthC - sumRadii;
         // Длина вектора перемещения
         float mag = movevec.magnitude();
         if (mag < dist)
@@ -203,9 +193,7 @@ public class Circle2f
         {
             return new WillCollideWrapper(false, 1.0f);
         }
-
-        // Расстояние между кругами
-        double lengthC = C.magnitude();
+        
         // Квадрат наименьшего расстояния от центра второго круга до вектора перемещения первого
         double F = (lengthC * lengthC) - (D * D);
 
@@ -227,6 +215,7 @@ public class Circle2f
 
         // Дистанция до столкновения
         float distance = D - (float)Math.sqrt(T);
+        // Если один круг находится внутри другого
         if (distance <= 0.0f)
         {
             return new WillCollideWrapper(false, 1.0f);
@@ -281,12 +270,9 @@ public class Circle2f
         Vector2f newPosition = position.add(dX);
         // Точка пересечения прямой, содержащей вектор перемещения и отрезка
         Vector2f intersection;
-        float a1 = newPosition.Y - position.Y;
-        float b1 = position.X - newPosition.X;
-        float c1 = a1 * position.X + b1 * position.Y;
-        float a2 = wall.B.Y - wall.A.Y;
-        float b2 = wall.A.X - wall.B.X;
-        float c2 = a2 * wall.A.X + b2 * wall.A.Y;
+        float a1 = newPosition.Y - position.Y;         float a2 = wall.B.Y - wall.A.Y;
+        float b1 = position.X - newPosition.X;         float b2 = wall.A.X - wall.B.X;
+        float c1 = a1 * position.X + b1 * position.Y;  float c2 = a2 * wall.A.X + b2 * wall.A.Y;
         float det = a1 * b2 - a2 * b1;
 
         intersection = new Vector2f((b2 * c1 - b1 * c2) / det, (a1 * c2 - a2 * c1) / det);
@@ -303,19 +289,15 @@ public class Circle2f
         // Точка, в которой, возможно, произошло столкновение
         newPosition = position.add(dX.normalize().mult(distance));
         // Столкновение произошло, когда точки A и B лежат по разные стороны от точки newPosition
-        // Т.е. когда уголы newPosition-B-A и newposition-A-B - острые
+        // Т.е. когда углы newPosition-B-A и newposition-A-B - острые
         Vector2f A = wall.A.sub(seg_v_unit.mult(radius));
         Vector2f B = wall.B.add(seg_v_unit.mult(radius));
         Vector2f AnP = newPosition.sub(A);
         Vector2f BnP = newPosition.sub(B);
         if ((AnP.dot(B.sub(A)) >= 0.0f) && (BnP.dot(A.sub(B)) >= 0.0f))
-        {
             return new WillCollideWrapper(true, distance / mag);
-        }
         else
-        {
             return new WillCollideWrapper(false, 1.0f);
-        }
     }
 
     // Обработать столкновение двух кругов, имеющих массу
@@ -352,6 +334,17 @@ public class Circle2f
         // Пересчитать вектора скоростей
         // v1' = v1 - 2 * (a1 - a2) * m2 * n
         velocity = velocity.sub(n.mult(2 * (a1 - a2)));
+        // v2' = v2
+        
+        // Нормированный вектор из центра 1 шара в центр 2
+//        Vector2f n = position.sub(other.position).normalize();
+        // Найти коэффициент проекции каждого вектора скорости на n
+//        float a1 = velocity.dot(n);
+//        float a2 = other.velocity.dot(n);
+
+        // Пересчитать вектора скоростей
+        // v1' = v1 - 2 * (a1 - a2) * m2 * n
+//        velocity = velocity.sub(n.mult(a1 - a2));
         // v2' = v2
     }
 

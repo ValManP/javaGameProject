@@ -33,9 +33,8 @@ public class State implements Serializable {
         this.mallet_1 = mallet_1;
         this.mallet_2 = mallet_2;
     }
-
+    
     public State() {
-        
     }
     
     public State(boolean disconnect) {
