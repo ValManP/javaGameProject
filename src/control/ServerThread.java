@@ -1,11 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package Server;
+package control;
 
-
+import model.database.DBInterface;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -34,50 +29,13 @@ public class ServerThread extends Thread{
     ClientThread player_1, player_2;
     int client_count = 0;
     
-    Client.State currentState;
-    Client.State incomingState;
+    model.physics.State currentState;
+    model.physics.State incomingState;
     
     GameCycle gameCycle;
     DBInterface dbInterface;
     
-    public synchronized void addToLog(String s)
-    {
-        log.append(s + "\n");
-    }
-    
-    synchronized void sendToAll(Client.State message)
-    {
-        if (player_1 != null && player_2 != null) {
-            player_1.sendMessage(currentState);
-            player_2.sendMessage(currentState);
-        }
-    }
-    
-    synchronized void stopServer()
-    {
-        f = false;
-        currentState.setDisconnected(true);
-        if (player_1 != null) {
-            player_1.sendMessage(currentState);
-            player_1.Disconnect();
-            player_1.interrupt();
-            player_1 = null;
-        }
-        if (player_2 != null) {
-            player_2.sendMessage(currentState);
-            player_2.Disconnect();
-            player_2.interrupt();
-            player_2 = null;
-        }
-        try {
-            ss.close();
-        } catch (IOException ex) {
-            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        stop();
-    }
-    
-    ServerThread(JTextArea log, JFrame mainPanel)
+    public ServerThread(JTextArea log, JFrame mainPanel)
     {
         this.log = log;
         
@@ -89,8 +47,8 @@ public class ServerThread extends Thread{
         mainPanel.pack();
         mainPanel.setVisible(true);
         
-        currentState = new Client.State();
-        incomingState = new Client.State();
+        currentState = new model.physics.State();
+        incomingState = new model.physics.State();
         
         gameCycle = new GameCycle(currentState);
         dbInterface = new DBInterface(log);
@@ -114,13 +72,13 @@ public class ServerThread extends Thread{
         {
             try {
                 Socket clientSocket = ss.accept();
-                Client.State m = new Client.State();
+                model.physics.State m = new model.physics.State();
                 
                 ClientThread ct = new ClientThread(this, clientSocket);
                 
-                if (dbInterface.findUserByName(ct.player_name) == 0) {
-                    addToLog("Player not found. Add " + ct.player_name + " to game DB.");
-                    dbInterface.addUser(ct.player_name);
+                if (dbInterface.findUserByName(ct.getPlayerName()) == 0) {
+                    addToLog("Player not found. Add " + ct.getPlayerName() + " to game DB.");
+                    dbInterface.addUser(ct.getPlayerName());
                 }
                 
                 
@@ -137,7 +95,7 @@ public class ServerThread extends Thread{
                 
                 ct.sendMessage(m);
 
-                addToLog("Player " + ct.player_name + " connect to the game.");
+                addToLog("Player " + ct.getPlayerName() + " connect to the game.");
             } catch (IOException | SQLException ex) {
                 Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -171,35 +129,75 @@ public class ServerThread extends Thread{
 
             if (currentState.getMallet_1() != null) {
                 g2d.setColor(Color.green);   
-                g2d.fillOval(currentState.getMallet_1().x - 20, currentState.getMallet_1().y - 20, 40, 40);
+                g2d.fillOval(currentState.getMallet_1().x - currentState.getMalletRadius()
+                        , currentState.getMallet_1().y - currentState.getMalletRadius()
+                        , 2 * currentState.getMalletRadius()
+                        , 2 * currentState.getMalletRadius());
             }
 
             if (currentState.getMallet_2() != null) {
                 g2d.setColor(Color.cyan);  
-                g2d.fillOval(currentState.getMallet_2().x - 20, currentState.getMallet_2().y - 20, 40, 40);
+                g2d.fillOval(currentState.getMallet_2().x - currentState.getMalletRadius()
+                        , currentState.getMallet_2().y - currentState.getMalletRadius()
+                        , 2 * currentState.getMalletRadius()
+                        , 2 * currentState.getMalletRadius());
             }
 
             if (currentState.getPuck() != null) {
                 g2d.setColor(Color.red);   
-                g2d.fillOval(currentState.getPuck().x - 20, currentState.getPuck().y - 20, 40, 40);
+                g2d.fillOval(currentState.getPuck().x - currentState.getMalletRadius()
+                        , currentState.getPuck().y - currentState.getMalletRadius()
+                        , 2 * currentState.getMalletRadius()
+                        , 2 * currentState.getMalletRadius());
             }
         }
     }
     
-    public synchronized Client.State getMessage()
+    public synchronized void stopServer()
+    {
+        f = false;
+        currentState.setDisconnected(true);
+        
+        if (player_1 != null) {
+            player_1.sendMessage(currentState);
+            player_1.Disconnect();
+            player_1.interrupt();
+            player_1 = null;
+        }
+        if (player_2 != null) {
+            player_2.sendMessage(currentState);
+            player_2.Disconnect();
+            player_2.interrupt();
+            player_2 = null;
+        }
+        try {
+            ss.close();
+        } catch (IOException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        stop();
+    }
+    
+    public synchronized model.physics.State getMessage()
     {
         return currentState;
     }
     
     public void disconnect(int player_num) {
-        if (player_num == 1) {
-            addToLog("Player 1 has disconnected");
-            player_1.interrupt();
-            player_1 = null;
-        } else if (player_num == 2) {
-            addToLog("Player 2 has disconnected");
-            player_2.interrupt();
-            player_2 = null;
+        
+        addToLog("Player " + player_num + " has disconnected");
+        
+        switch (player_num) {
+            case 1: {
+                player_1.interrupt();
+                player_1 = null;
+                break;
+            }
+            case 2: {
+                player_2.interrupt();
+                player_2 = null;
+                break;
+            }
         }
     }
     
@@ -252,5 +250,18 @@ public class ServerThread extends Thread{
     public void setConnectionData(InetAddress _ip, int _port) {
         ip = _ip;
         port = _port;
+    }
+    
+    public synchronized void addToLog(String s)
+    {
+        log.append(s + "\n");
+    }
+    
+    synchronized void sendToAll(model.physics.State message)
+    {
+        if (player_1 != null && player_2 != null) {
+            player_1.sendMessage(currentState);
+            player_2.sendMessage(currentState);
+        }
     }
 }

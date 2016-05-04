@@ -1,49 +1,40 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package Server;
+package control;
 
-import Client.ClientFrame;
+import view.ClientFrame;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JTextArea;
 
 public class ClientThread extends Thread {
-    ServerThread st;
-    Socket cs;
-    UUID id = UUID.randomUUID();
+    private ServerThread st;
+    private Socket cs;
+    private ObjectInputStream inputStream;
+    private ObjectOutputStream outputStream;
     
-    int player_num = -1; 
-    String player_name;
+    private model.physics.State incomingState;   
+    private int player_num = -1; 
+    private String player_name;
     
     JTextArea log;
-    
-    ObjectInputStream inputStream;
-    ObjectOutputStream outputStream;
-    
-    private Client.State incomingState;   
-    
-    public UUID getUUID()
-    {
-        return id;
-    }
     
     public void setPlayerNum(int player_num)
     {
         this.player_num = player_num;
     }
     
+    public String getPlayerName()
+    {
+        return this.player_name;
+    }
+    
     public ClientThread(ServerThread st, Socket cs)
     {
         
-        incomingState = new Client.State();
+        incomingState = new model.physics.State();
         
         this.st = st;
         this.cs = cs;
@@ -53,7 +44,7 @@ public class ClientThread extends Thread {
             outputStream = new ObjectOutputStream(cs.getOutputStream());
             
             do {
-                incomingState = (Client.State)inputStream.readObject();
+                incomingState = (model.physics.State)inputStream.readObject();
                 player_name = incomingState.getPlayerName();
             } while (incomingState.getPlayerName() == null);
             
@@ -75,7 +66,7 @@ public class ClientThread extends Thread {
                     while(f)
                     {
                         try {
-                            incomingState = (Client.State)inputStream.readObject();
+                            incomingState = (model.physics.State)inputStream.readObject();
                             
                             if (incomingState.getDisconnectedPlayer() != 0) {
                                 incomingState.setDisconnectedPlayer(0);
@@ -91,12 +82,12 @@ public class ClientThread extends Thread {
             }.start();
     } 
     
-    public Client.State getMes()
+    public model.physics.State getMes()
     {
        return incomingState;
     }
     
-    public synchronized void sendMessage(Client.State m)
+    public synchronized void sendMessage(model.physics.State m)
     {
         try {
             outputStream.reset();

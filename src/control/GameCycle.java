@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Server;
+package control;
 
-import Physics.Circle2f;
-import Physics.Mallet;
-import Physics.Vector2f;
-import Physics.Wall2f;
+import model.physics.Circle2f;
+import model.physics.Mallet;
+import model.physics.Vector2f;
+import model.physics.Wall2f;
 import java.awt.Dimension;
 import java.awt.Point;
 
@@ -17,7 +17,7 @@ import java.awt.Point;
  * @author pozdv
  */
 public class GameCycle {
-    Client.State state;
+    model.physics.State state;
     
     Point leftCorner;
     Dimension size;
@@ -37,7 +37,7 @@ public class GameCycle {
     // Текущее время
     long currentTime;
 
-    public GameCycle(Client.State m) {
+    public GameCycle(model.physics.State m) {
         // Время предыдущей итерации = время инициализации класса
         previousTime = System.nanoTime();
         currentTime = previousTime;
@@ -69,7 +69,7 @@ public class GameCycle {
         state.setPuck(new Point(size.width/2, size.height/2));
     }
     
-    public Client.State calculate(Client.State oldState) {
+    public model.physics.State calculate(model.physics.State oldState) {
         // Засекаем время, прошедшее с момента предыдущей итерации
         currentTime = System.nanoTime();
         dt = (currentTime - previousTime) / 1000000000.0f;

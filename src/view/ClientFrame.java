@@ -1,5 +1,6 @@
-package Client;
+package view;
 
+import model.physics.State;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -281,7 +282,7 @@ public class ClientFrame extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setAlwaysOnTop(true);
-        setPreferredSize(new java.awt.Dimension(410, 960));
+        setPreferredSize(new java.awt.Dimension(410, 935));
         setResizable(false);
 
         connect.setText("Connect");
