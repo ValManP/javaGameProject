@@ -1,23 +1,18 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package model.physics;
 
 import java.io.Serializable;
 import java.awt.Point;
 
-/**
- *
- * @author pozdv
- */
 public class State implements Serializable {
     // Player data
     private int player_num;
     private String player_name;
     
     // Game data
+    public boolean isPaused = true;
+    public boolean isFirstReady = false;
+    public boolean isSecondReady = false;
+    public boolean isGame = false;
     private Point puck;
     private Point mallet_1, mallet_2;
     
@@ -25,7 +20,9 @@ public class State implements Serializable {
     
     private int disconnectedPlayer = 0;
     private boolean disconnected = false;
-
+    
+    public int firstScore = 0;
+    public int secondScore = 0;
     
 
     public State(Point puck, Point mallet_1, Point mallet_2) {

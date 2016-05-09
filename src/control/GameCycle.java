@@ -160,8 +160,12 @@ public class GameCycle {
             puck.moveToNextPosition(min_k_wall);
             
             // Обработка гола
-            //if (wall_to_collide == walls[1])
-            //if (wall_to_collide == walls[5])
+            if (wall_to_collide == walls[1]) {
+                handleGoal(true);
+            }
+            if (wall_to_collide == walls[5])  {
+                handleGoal(false);
+            }
             
             puck.collideWithWall(wall_to_collide);
 
@@ -190,8 +194,12 @@ public class GameCycle {
             if (wall_to_collide != null)
             {
                 // Обработка гола
-                //if (wall_to_collide == walls[1])
-                //if (wall_to_collide == walls[5])
+                if (wall_to_collide == walls[1]) {
+                    handleGoal(true);
+                }
+                if (wall_to_collide == walls[5]) {
+                    handleGoal(false);
+                }
                 
                 puck.collideWithWall(wall_to_collide);
             }
@@ -242,5 +250,16 @@ public class GameCycle {
     public long getElapsedNanoTime()
     {
         return currentTime - previousTime;
+    }
+    
+    private void handleGoal(boolean isFirst) {
+        if (isFirst) {
+            this.state.firstScore++;
+            puck = new Circle2f(size.width/2, size.height/2 - 100, 20, 50);
+        } else {
+            this.state.secondScore++;
+            puck = new Circle2f(size.width/2, size.height/2 + 100, 20, 50);
+        }
+        
     }
 }

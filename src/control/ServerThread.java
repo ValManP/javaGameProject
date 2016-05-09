@@ -86,14 +86,16 @@ public class ServerThread extends Thread{
                     player_1 = ct;
                     m.setPlayerNum(1);
                     ct.setPlayerNum(1);
+                    ct.sendMessage(m);
                     
                 } else if (player_2 == null) {
                     player_2 = ct;
                     m.setPlayerNum(2);
                     ct.setPlayerNum(2);
+                    ct.sendMessage(m);
                 }
                 
-                ct.sendMessage(m);
+                //ct.sendMessage(m);
 
                 addToLog("Player " + ct.getPlayerName() + " connect to the game.");
             } catch (IOException | SQLException ex) {
@@ -214,6 +216,7 @@ public class ServerThread extends Thread{
                     if (player_1 != null) {
                         m1 = player_1.getMes().getMallet_1();
 
+                        currentState.isFirstReady = player_1.getMes().isFirstReady;
                         if (m1 != null) {
                             incomingState.setMallet_1(m1);
                        }
@@ -221,15 +224,19 @@ public class ServerThread extends Thread{
 
                     if (player_2 != null) {
                         m2 = player_2.getMes().getMallet_2(); 
-
+                        
+                        currentState.isSecondReady = player_2.getMes().isSecondReady;
                         if (m2 != null) {
                             incomingState.setMallet_2(m2);
                         }
                     }
+                   
 
-                    if (m1 != null || m2 != null) {
-                        currentState = gameCycle.calculate(incomingState);
-                        sendToAll(currentState);
+                    if (m1 != null && m2 != null) {
+                        if (currentState.isFirstReady && currentState.isSecondReady) {
+                            currentState = gameCycle.calculate(incomingState);
+                            sendToAll(currentState);
+                        }
 
 //                        float elapsedMilliTime = gameCycle.getElapsedNanoTime() / 1000.0f;
 //                        float toSleep = 17.0f - elapsedMilliTime;
@@ -260,8 +267,8 @@ public class ServerThread extends Thread{
     synchronized void sendToAll(model.physics.State message)
     {
         if (player_1 != null && player_2 != null) {
-            player_1.sendMessage(currentState);
-            player_2.sendMessage(currentState);
+            player_1.sendMessage(message);
+            player_2.sendMessage(message);
         }
     }
 }

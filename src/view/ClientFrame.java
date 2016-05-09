@@ -36,7 +36,7 @@ public class ClientFrame extends javax.swing.JFrame {
     private final Rectangle gameArea;
     
     // Game objects
-    private final State currentState;
+    private State currentState;
     private State incomingState;
     private int player_num = -1;
     
@@ -72,6 +72,8 @@ public class ClientFrame extends javax.swing.JFrame {
                         currentState.setPuck(incomingState.getPuck());
                     }
                     
+                    handleScore(incomingState);
+                    
                     if (incomingState.isDisconnected()) {
                         break;
                     }
@@ -81,6 +83,25 @@ public class ClientFrame extends javax.swing.JFrame {
                 Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+    }
+    
+    private void handleScore(State incomingState) {
+        int yourScore, enemyScore;
+        
+        if (currentState.firstScore != incomingState.firstScore
+                || currentState.secondScore != incomingState.secondScore) {
+            if (player_num == 1) {
+                yourScore = incomingState.secondScore;
+                enemyScore = incomingState.firstScore;
+            } else {
+                yourScore = incomingState.firstScore;
+                enemyScore = incomingState.secondScore;
+            }
+            logArea.append("Score: Your " + yourScore + " Enemy " + enemyScore + "\n");
+        }
+        
+        currentState.firstScore = incomingState.firstScore;
+        currentState.secondScore = incomingState.secondScore;
     }
     //--------------------------//
     /**
@@ -447,12 +468,15 @@ public class ClientFrame extends javax.swing.JFrame {
         if (player_num == 1) {
             mallet = new Point(gameArea.width / 2, 50);
             currentState.setMallet_1(mallet);
+            currentState.isFirstReady = true;
         } else {
             mallet = new Point(gameArea.width / 2, gameArea.height - 50);
             currentState.setMallet_2(mallet);
+            currentState.isSecondReady = true;
         }
 
         currentState.setPuck(new Point(gameArea.width / 2, gameArea.height / 2));
+        sendMes();
     }//GEN-LAST:event_startGameButtonActionPerformed
 
     public void sendDisconnect() 
@@ -496,6 +520,16 @@ public class ClientFrame extends javax.swing.JFrame {
     {
         try {
             currentState.setPlayerName(getName());
+            outputStream.reset();
+            outputStream.writeObject(currentState);
+        } catch (IOException ex) {
+            Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void sendMes() 
+    {
+        try {
             outputStream.reset();
             outputStream.writeObject(currentState);
         } catch (IOException ex) {

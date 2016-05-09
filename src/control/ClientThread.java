@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 import javax.swing.JTextArea;
 
 public class ClientThread extends Thread {
-    private ServerThread st;
+    protected ServerThread st;
     private Socket cs;
     private ObjectInputStream inputStream;
     private ObjectOutputStream outputStream;
@@ -73,6 +73,11 @@ public class ClientThread extends Thread {
                                 Disconnect();
                                 st.disconnect(player_num);
                             }
+                            
+                            if (checkReadiness(incomingState)) {
+                                st.game();
+                            }
+                            
                         } catch (IOException | ClassNotFoundException ex) {
                             Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
                         }
@@ -106,5 +111,15 @@ public class ClientThread extends Thread {
         } catch(Exception ex) {
             log.append("Failed to disconnect. \n");
         }
+    }
+    
+    public boolean checkReadiness(model.physics.State m) {
+        if (player_num == 1) {
+            st.currentState.isFirstReady = m.isFirstReady; 
+        } else {
+            st.currentState.isSecondReady = m.isSecondReady;
+        }
+        
+        return st.currentState.isFirstReady && st.currentState.isSecondReady;
     }
 }
