@@ -3,6 +3,7 @@ package view;
 import model.physics.State;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -72,6 +73,11 @@ public class ClientFrame extends javax.swing.JFrame {
                         currentState.setPuck(incomingState.getPuck());
                     }
                     
+                    if (incomingState.isGame && !currentState.isGame) {
+                        startGame();
+                        currentState.isGame = incomingState.isGame;
+                    }
+                    
                     handleScore(incomingState);
                     
                     if (incomingState.isDisconnected()) {
@@ -97,7 +103,6 @@ public class ClientFrame extends javax.swing.JFrame {
                 yourScore = incomingState.firstScore;
                 enemyScore = incomingState.secondScore;
             }
-            logArea.append("Score: Your " + yourScore + " Enemy " + enemyScore + "\n");
         }
         
         currentState.firstScore = incomingState.firstScore;
@@ -135,54 +140,47 @@ public class ClientFrame extends javax.swing.JFrame {
                         
 			Graphics2D g2d = (Graphics2D) g;
                         
-                        //g2d.drawImage(fieldImg, 0, 0, 400, 700, null);
-                        g2d.setColor(Color.black);
-                        g2d.drawRoundRect(0, 0, gameArea.width, gameArea.height, 20, 20);
-                        g2d.drawRect(0, 0, gameArea.width, gameArea.height/2);
+                        g2d.drawImage(fieldImg, 0, 0, 400, 700, null);
                         
                         g2d.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
                         
                         if (currentState.getMallet_1() != null) {
-                            if (player_num == 1) {
-                                g2d.setColor(Color.green);
-                            } else {
-                                g2d.setColor(Color.red);
-                            }
-                            g2d.fillOval(currentState.getMallet_1().x - currentState.getMalletRadius(), 
+
+                            g2d.drawImage((player_num == 1) ? yourMalletImg : enemyMalletImg
+                                    , currentState.getMallet_1().x - currentState.getMalletRadius(), 
                                     currentState.getMallet_1().y - currentState.getMalletRadius(), 
                                     2 * currentState.getMalletRadius(),
-                                    2 * currentState.getMalletRadius());
-                            //g2d.drawImage(yourMalletImg, currentState.getMallet_1().x - 90, currentState.getMallet_1().y - 65, 150, 100, null);
+                                    2 * currentState.getMalletRadius(), null);
                         }
 
                         if (currentState.getMallet_2() != null) {
-                            if (player_num == 2) {
-                                g2d.setColor(Color.green);
-                            } else {
-                                g2d.setColor(Color.red);
-                            }
-                            g2d.fillOval(currentState.getMallet_2().x - currentState.getMalletRadius(), 
+                            g2d.drawImage( (player_num == 2) ? yourMalletImg : enemyMalletImg
+                                    , currentState.getMallet_2().x - currentState.getMalletRadius(), 
                                     currentState.getMallet_2().y - currentState.getMalletRadius(), 
                                     2 * currentState.getMalletRadius(), 
-                                    2 * currentState.getMalletRadius());
-                            //g2d.drawImage(yourMalletImg, message.getMallet_2().x - 10, message.getMallet_2().y - 10, 150, 100, null);
+                                    2 * currentState.getMalletRadius(), null);
                         }
 
                         if (currentState.getPuck() != null) {
-                            g2d.setColor(Color.yellow);   
-                            g2d.fillOval(currentState.getPuck().x - currentState.getMalletRadius(), 
-                                    currentState.getPuck().y - currentState.getMalletRadius(), 
-                                    2 * currentState.getMalletRadius(), 
-                                    2 * currentState.getMalletRadius());
-                            //g2d.drawImage(puckImg, message.getPuck().x - 50, message.getPuck().y - 50, 100, 100, null);
+                            g2d.drawImage(puckImg, currentState.getPuck().x - currentState.getPuckRadius(), 
+                                    currentState.getPuck().y - currentState.getPuckRadius(), 
+                                    2 * currentState.getPuckRadius(), 
+                                    2 * currentState.getPuckRadius(), null);
                         }
                         
+                        
+                        Font font = new Font("Courier", Font.BOLD, 30);
+                        
+                        g2d.setFont(font);
+                        g2d.setColor(Color.CYAN);
+                        g2d.drawString(String.valueOf(currentState.secondScore), 365, 330);
+                        g2d.drawString(String.valueOf(currentState.firstScore), 365, 390);
 		}
                 
                 @Override
                 public void mouseDragged( MouseEvent e )
                 {
-                    if (mallet != null) {
+                    if (mallet != null && currentState.isGame) {
                         if (Math.abs(mallet.x - e.getX()) < currentState.getMalletRadius() && Math.abs(mallet.y - e.getY()) < currentState.getMalletRadius()) {
                             mallet.x = getClippedX(e.getX(), gameArea);
                             mallet.y = getClippedY(e.getY(), gameArea);
@@ -232,13 +230,10 @@ public class ClientFrame extends javax.swing.JFrame {
                         return Math.min(oldY, r.height - delta - currentState.getMalletRadius());
                     }
                 }
-
-                @Override
-                public void mouseClicked( MouseEvent e ) {
-                    logArea.append(e.getPoint().toString()+"\n");
-                }
                 
                 // Unused Mouse Listener Methods
+                @Override
+                public void mouseClicked( MouseEvent e ) {}
                 @Override
                 public void mousePressed( MouseEvent e ) {}
                 @Override
@@ -267,10 +262,10 @@ public class ClientFrame extends javax.swing.JFrame {
         setVisible(true);
         
         try {
-            fieldImg = ImageIO.read(new File("src/image/fieldImg.jpg"));
-            yourMalletImg = ImageIO.read(new File("src/image/malletImg.png"));
-            yourMalletImg = ImageIO.read(new File("src/image/malletImg.png"));
-            puckImg = ImageIO.read(new File("src/image/puckImg.png"));
+            fieldImg = ImageIO.read(new File("src/image/field.jpg"));
+            yourMalletImg = ImageIO.read(new File("src/image/yourMallet.png"));
+            enemyMalletImg = ImageIO.read(new File("src/image/enemyMallet.png"));
+            puckImg = ImageIO.read(new File("src/image/puck.png"));
         } catch (IOException ex) {
             Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -299,7 +294,6 @@ public class ClientFrame extends javax.swing.JFrame {
         b_disconnect = new javax.swing.JButton();
         nameTextField = new javax.swing.JTextField();
         startGameButton = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setAlwaysOnTop(true);
@@ -351,8 +345,6 @@ public class ClientFrame extends javax.swing.JFrame {
             }
         });
 
-        jButton2.setText("Pause");
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -361,11 +353,9 @@ public class ClientFrame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(nameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(nameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(startGameButton, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(31, 31, 31)
-                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(startGameButton, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                             .addComponent(connect, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -387,8 +377,7 @@ public class ClientFrame extends javax.swing.JFrame {
                 .addContainerGap(578, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(nameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(startGameButton)
-                    .addComponent(jButton2))
+                    .addComponent(startGameButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -404,7 +393,6 @@ public class ClientFrame extends javax.swing.JFrame {
         );
 
         startGameButton.getAccessibleContext().setAccessibleName("startGameButton");
-        jButton2.getAccessibleContext().setAccessibleName("pauseButton");
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -465,20 +453,24 @@ public class ClientFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_b_disconnectActionPerformed
 
     private void startGameButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startGameButtonActionPerformed
+        changeGameStatus(true);
+    }//GEN-LAST:event_startGameButtonActionPerformed
+
+    private void changeGameStatus(boolean status) {
         if (player_num == 1) {
             mallet = new Point(gameArea.width / 2, 50);
             currentState.setMallet_1(mallet);
-            currentState.isFirstReady = true;
+            currentState.isFirstReady = status;
         } else {
             mallet = new Point(gameArea.width / 2, gameArea.height - 50);
             currentState.setMallet_2(mallet);
-            currentState.isSecondReady = true;
+            currentState.isSecondReady = status;
         }
 
         currentState.setPuck(new Point(gameArea.width / 2, gameArea.height / 2));
         sendMes();
-    }//GEN-LAST:event_startGameButtonActionPerformed
-
+    }
+    
     public void sendDisconnect() 
     {
         try
@@ -537,6 +529,18 @@ public class ClientFrame extends javax.swing.JFrame {
         }
     }
     
+    public void startGame () {
+        try {
+            logArea.append("Game will start in ");
+            for (int i = 5; i > 0; i--) {
+                logArea.append(i + " ");
+                Thread.sleep(1000);
+            }
+            logArea.append("\nStart!");
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
     /**
      * @param args the command line arguments
      */
@@ -575,7 +579,6 @@ public class ClientFrame extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton b_disconnect;
     private javax.swing.JButton connect;
-    private javax.swing.JButton jButton2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lb_address;
     private javax.swing.JLabel lb_port;

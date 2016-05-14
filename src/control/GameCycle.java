@@ -62,8 +62,8 @@ public class GameCycle {
         walls[7] = new Wall2f(leftCorner.x, leftCorner.y + size.height, leftCorner.x, leftCorner.y);
 
         mallets = new Mallet[2];
-        mallets[0] = new Mallet(size.width/2, 50, 20);
-        mallets[1] = new Mallet(size.width/2, size.height-50, 20);
+        mallets[0] = new Mallet(size.width/2, 50, 30);
+        mallets[1] = new Mallet(size.width/2, size.height-50, 30);
         puck = new Circle2f(size.width/2, size.height/2, 20, 50);
         
         state.setPuck(new Point(size.width/2, size.height/2));

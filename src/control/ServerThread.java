@@ -147,10 +147,10 @@ public class ServerThread extends Thread{
 
             if (currentState.getPuck() != null) {
                 g2d.setColor(Color.red);   
-                g2d.fillOval(currentState.getPuck().x - currentState.getMalletRadius()
-                        , currentState.getPuck().y - currentState.getMalletRadius()
-                        , 2 * currentState.getMalletRadius()
-                        , 2 * currentState.getMalletRadius());
+                g2d.fillOval(currentState.getPuck().x - currentState.getPuckRadius()
+                        , currentState.getPuck().y - currentState.getPuckRadius()
+                        , 2 * currentState.getPuckRadius()
+                        , 2 * currentState.getPuckRadius());
             }
         }
     }
@@ -234,8 +234,11 @@ public class ServerThread extends Thread{
 
                     if (m1 != null && m2 != null) {
                         if (currentState.isFirstReady && currentState.isSecondReady) {
+                            currentState.isGame = true;
                             currentState = gameCycle.calculate(incomingState);
                             sendToAll(currentState);
+                        } else {
+                            currentState.isGame = false;
                         }
 
 //                        float elapsedMilliTime = gameCycle.getElapsedNanoTime() / 1000.0f;

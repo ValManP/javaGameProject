@@ -16,7 +16,8 @@ public class State implements Serializable {
     private Point puck;
     private Point mallet_1, mallet_2;
     
-    private int malletRadius = 20;
+    final private int malletRadius = 30;
+    final private int puckRadius = 20;
     
     private int disconnectedPlayer = 0;
     private boolean disconnected = false;
@@ -72,6 +73,10 @@ public class State implements Serializable {
     
     public int getMalletRadius() {
         return malletRadius;
+    }
+    
+    public int getPuckRadius() {
+        return puckRadius;
     }
             
     public int getDisconnectedPlayer() {
