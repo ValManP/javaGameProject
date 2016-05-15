@@ -241,16 +241,16 @@ public class ServerThread extends Thread{
                             currentState.isGame = false;
                         }
 
-//                        float elapsedMilliTime = gameCycle.getElapsedNanoTime() / 1000.0f;
-//                        float toSleep = 17.0f - elapsedMilliTime;
-//                        if (toSleep > 0.0f)
-//                        {
-//                            try {
-//                                Thread.sleep((long)toSleep);
-//                            } catch (InterruptedException ex) {
-//                                Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
-//                            }
-//                        }
+                        float elapsedMilliTime = gameCycle.getElapsedNanoTime() / 1000.0f;
+                        float toSleep = 17.0f - elapsedMilliTime;
+                        if (toSleep > 0.0f)
+                        {
+                            try {
+                                Thread.sleep((long)toSleep);
+                            } catch (InterruptedException ex) {
+                                Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                        }
                     }
                 }
             }
