@@ -146,24 +146,25 @@ public class ClientFrame extends javax.swing.JFrame {
                         
                         if (currentState.getMallet_1() != null) {
 
-                            g2d.drawImage((player_num == 1) ? yourMalletImg : enemyMalletImg
-                                    , currentState.getMallet_1().x - currentState.getMalletRadius(), 
-                                    currentState.getMallet_1().y - currentState.getMalletRadius(), 
+                            g2d.drawImage((player_num == 1) ? yourMalletImg : enemyMalletImg,
+                                    getCoordinateX(currentState.getMallet_1().x) - currentState.getMalletRadius(), 
+                                    getCoordinateY(currentState.getMallet_1().y) - currentState.getMalletRadius(), 
                                     2 * currentState.getMalletRadius(),
                                     2 * currentState.getMalletRadius(), null);
                         }
 
                         if (currentState.getMallet_2() != null) {
-                            g2d.drawImage( (player_num == 2) ? yourMalletImg : enemyMalletImg
-                                    , currentState.getMallet_2().x - currentState.getMalletRadius(), 
-                                    currentState.getMallet_2().y - currentState.getMalletRadius(), 
+                            g2d.drawImage( (player_num == 2) ? yourMalletImg : enemyMalletImg,
+                                    getCoordinateX(currentState.getMallet_2().x) - currentState.getMalletRadius(), 
+                                    getCoordinateY(currentState.getMallet_2().y) - currentState.getMalletRadius(), 
                                     2 * currentState.getMalletRadius(), 
                                     2 * currentState.getMalletRadius(), null);
                         }
 
                         if (currentState.getPuck() != null) {
-                            g2d.drawImage(puckImg, currentState.getPuck().x - currentState.getPuckRadius(), 
-                                    currentState.getPuck().y - currentState.getPuckRadius(), 
+                            g2d.drawImage(puckImg, 
+                                    getCoordinateX(currentState.getPuck().x)- currentState.getPuckRadius(), 
+                                    getCoordinateY(currentState.getPuck().y) - currentState.getPuckRadius(), 
                                     2 * currentState.getPuckRadius(), 
                                     2 * currentState.getPuckRadius(), null);
                         }
@@ -177,13 +178,22 @@ public class ClientFrame extends javax.swing.JFrame {
                         g2d.drawString(String.valueOf(currentState.firstScore), 365, 390);
 		}
                 
+                private int getCoordinateY(int coord) {
+                    return (player_num == 1) ? gameArea.height - coord : coord;
+                }
+                
+                private int getCoordinateX(int coord) {
+                    return (player_num == 1) ? gameArea.width - coord : coord;
+                }
+                
                 @Override
                 public void mouseDragged( MouseEvent e )
                 {
                     if (mallet != null && currentState.isGame) {
-                        if (Math.abs(mallet.x - e.getX()) < currentState.getMalletRadius() && Math.abs(mallet.y - e.getY()) < currentState.getMalletRadius()) {
-                            mallet.x = getClippedX(e.getX(), gameArea);
-                            mallet.y = getClippedY(e.getY(), gameArea);
+                        if (Math.abs(getCoordinateX(mallet.x)- e.getX()) < currentState.getMalletRadius() 
+                                && Math.abs(getCoordinateY(mallet.y) - e.getY()) < currentState.getMalletRadius()) {
+                            mallet.x = getClippedX(getCoordinateX(e.getX()), gameArea);
+                            mallet.y = getClippedY(getCoordinateY(e.getY()), gameArea);
                             if (player_num == 1) {
                                 currentState.setMallet_1(mallet);
                             } else {
