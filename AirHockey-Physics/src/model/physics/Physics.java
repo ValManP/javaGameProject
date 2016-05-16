@@ -1,5 +1,7 @@
 package model.physics;
 
+import java.awt.Dimension;
+
 // Класс с физическими константами
 public class Physics
 {
@@ -12,4 +14,12 @@ public class Physics
     // Скорость игры (для использования с таймером)
     // На разных компьютерах должна быть своя
     //public static final float dt = 0.04f;
+    // Размер игрового поля
+    public static final Dimension Field = new Dimension(300, 600);
+    // Радиус щетки
+    public static final float MalletRadius = 30.0f;
+    // Радиус шайбы
+    public static final float PuckRadius = 20.0f;
+    // Масса шайбы
+    public static final float PuckMass = 50.0f;
 }

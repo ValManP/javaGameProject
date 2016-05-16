@@ -16,16 +16,12 @@ public class AirHockeyState implements Serializable {
     private Point puck;
     private Point mallet1, mallet2;
     
-    final private int malletRadius = 30;
-    final private int puckRadius = 20;
-    
     private int disconnectedPlayer = 0;
     private boolean disconnected = false;
     
     public int firstScore = 0;
     public int secondScore = 0;
     
-
     public AirHockeyState(Point puck, Point mallet1, Point mallet2) {
         this.puck = puck;
         this.mallet1 = mallet1;
@@ -70,14 +66,6 @@ public class AirHockeyState implements Serializable {
         this.player_num = value;
     }
     
-    public int getMalletRadius() {
-        return malletRadius;
-    }
-    
-    public int getPuckRadius() {
-        return puckRadius;
-    }
-            
     public int getDisconnectedPlayer() {
         return disconnectedPlayer;
     }

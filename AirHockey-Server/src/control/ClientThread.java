@@ -40,7 +40,7 @@ public class ClientThread extends Thread {
             outputStream = new ObjectOutputStream(cs.getOutputStream());
             
             do {
-                incomingState = (model.physics.AirHockeyState)inputStream.readObject();
+                incomingState = (AirHockeyState)inputStream.readObject();
                 player_name = incomingState.getPlayerName();
             } while (incomingState.getPlayerName() == null);
             
@@ -91,8 +91,7 @@ public class ClientThread extends Thread {
     }
     
     public synchronized void Disconnect() {
-        try 
-        {
+        try {
             //sendMessage(new Client.State(true));
             cs.close();
         } catch(Exception ex) {

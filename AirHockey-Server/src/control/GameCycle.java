@@ -5,6 +5,7 @@ import model.physics.Circle2f;
 import model.physics.Mallet;
 import model.physics.Vector2f;
 import model.physics.Wall2f;
+import model.physics.Physics;
 import java.awt.Dimension;
 import java.awt.Point;
 
@@ -37,7 +38,7 @@ public class GameCycle {
         state = m;
 
         leftCorner = new Point(0, 0);
-        size = new Dimension(400, 700);
+        size = new Dimension(Physics.Field);
         
         walls = new Wall2f[8];
         // Верхняя
@@ -54,11 +55,11 @@ public class GameCycle {
         walls[7] = new Wall2f(leftCorner.x, leftCorner.y + size.height, leftCorner.x, leftCorner.y);
 
         mallets = new Mallet[2];
-        mallets[0] = new Mallet(size.width/2, 50, 30);
-        mallets[1] = new Mallet(size.width/2, size.height-50, 30);
-        puck = new Circle2f(size.width/2, size.height/2, 20, 50);
+        mallets[0] = new Mallet(size.width / 2, Physics.MalletRadius + 10, Physics.MalletRadius);
+        mallets[1] = new Mallet(size.width / 2, size.height - Physics.MalletRadius - 10, Physics.MalletRadius);
+        puck = new Circle2f(size.width / 2, size.height / 2, Physics.PuckRadius, Physics.PuckMass);
         
-        state.setPuck(new Point(size.width/2, size.height/2));
+        state.setPuck(new Point(size.width / 2, size.height / 2));
     }
     
     public AirHockeyState calculate(AirHockeyState oldState) {
@@ -235,10 +236,10 @@ public class GameCycle {
     private void handleGoal(boolean isFirst) {
         if (isFirst) {
             this.state.firstScore++;
-            puck = new Circle2f(size.width/2, size.height/2 - 100, 20, 50);
+            puck = new Circle2f(size.width/2, size.height/2 - 100, Physics.PuckRadius, Physics.PuckMass);
         } else {
             this.state.secondScore++;
-            puck = new Circle2f(size.width/2, size.height/2 + 100, 20, 50);
+            puck = new Circle2f(size.width/2, size.height/2 + 100, Physics.PuckRadius, Physics.PuckMass);
         }
     }
 }

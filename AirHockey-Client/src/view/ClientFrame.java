@@ -1,6 +1,7 @@
 package view;
 
 import model.physics.AirHockeyState;
+import model.physics.Physics;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -47,12 +48,9 @@ public class ClientFrame extends javax.swing.JFrame {
     public class IncomingReader implements Runnable
     {
         @Override
-        public void run() 
-        {
-            try
-            {
-                while (inputStream != null)
-                {
+        public void run() {
+            try {
+                while (inputStream != null) {
                     incomingState = (AirHockeyState)inputStream.readObject();
 
                     if (incomingState.getMallet1() != null) {
@@ -105,6 +103,7 @@ public class ClientFrame extends javax.swing.JFrame {
             super();
             addMouseListener(this);
             addMouseMotionListener(this);
+            setLocation(10, 10);
             new Thread(this).start();
         }
 
@@ -134,37 +133,40 @@ public class ClientFrame extends javax.swing.JFrame {
 
             Graphics2D g2d = (Graphics2D) g;
 
-            g2d.drawImage(fieldImg, 0, 0, 400, 700, null);
+            g2d.drawImage(fieldImg, 0, 0, Physics.Field.width, Physics.Field.height, null);
 
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
             if (currentState.getMallet1() != null) {
                 g2d.drawImage(
                     (player_num == 1) ? yourMalletImg : enemyMalletImg,
-                    getCoordinateX(currentState.getMallet1().x) - currentState.getMalletRadius(), 
-                    getCoordinateY(currentState.getMallet1().y) - currentState.getMalletRadius(), 
-                    2 * currentState.getMalletRadius(),
-                    2 * currentState.getMalletRadius(), null
+                    getCoordinateX(currentState.getMallet1().x) - (int)Physics.MalletRadius,
+                    getCoordinateY(currentState.getMallet1().y) - (int)Physics.MalletRadius,
+                    2 * (int)Physics.MalletRadius,
+                    2 * (int)Physics.MalletRadius,
+                    null
                 );
             }
 
             if (currentState.getMallet2() != null) {
                 g2d.drawImage(
                     (player_num == 2) ? yourMalletImg : enemyMalletImg,
-                    getCoordinateX(currentState.getMallet2().x) - currentState.getMalletRadius(), 
-                    getCoordinateY(currentState.getMallet2().y) - currentState.getMalletRadius(), 
-                    2 * currentState.getMalletRadius(), 
-                    2 * currentState.getMalletRadius(), null
+                    getCoordinateX(currentState.getMallet2().x) - (int)Physics.MalletRadius,
+                    getCoordinateY(currentState.getMallet2().y) - (int)Physics.MalletRadius,
+                    2 * (int)Physics.MalletRadius,
+                    2 * (int)Physics.MalletRadius,
+                    null
                 );
             }
 
             if (currentState.getPuck() != null) {
                 g2d.drawImage(
                     puckImg, 
-                    getCoordinateX(currentState.getPuck().x)- currentState.getPuckRadius(), 
-                    getCoordinateY(currentState.getPuck().y) - currentState.getPuckRadius(), 
-                    2 * currentState.getPuckRadius(), 
-                    2 * currentState.getPuckRadius(), null
+                    getCoordinateX(currentState.getPuck().x) - (int)Physics.PuckRadius,
+                    getCoordinateY(currentState.getPuck().y) - (int)Physics.PuckRadius,
+                    2 * (int)Physics.PuckRadius,
+                    2 * (int)Physics.PuckRadius,
+                    null
                 );
             }
 
@@ -172,16 +174,15 @@ public class ClientFrame extends javax.swing.JFrame {
 
             g2d.setFont(font);
             g2d.setColor(Color.CYAN);
-            g2d.drawString(String.valueOf(currentState.secondScore), 365, 330);
-            g2d.drawString(String.valueOf(currentState.firstScore), 365, 390);
+            g2d.drawString(String.valueOf(currentState.secondScore), Physics.Field.width - 35, Physics.Field.height / 2 - 20);
+            g2d.drawString(String.valueOf(currentState.firstScore), Physics.Field.width - 35, Physics.Field.height / 2 + 40);
         }
-
 
         @Override
         public void mouseDragged(MouseEvent e) {
             if (mallet != null && currentState.isGame) {
-                if ((Math.abs(getCoordinateX(mallet.x)- e.getX()) < currentState.getMalletRadius()) &&
-                    (Math.abs(getCoordinateY(mallet.y) - e.getY()) < currentState.getMalletRadius())) {
+                if ((Math.abs(getCoordinateX(mallet.x)- e.getX()) < Physics.MalletRadius) &&
+                    (Math.abs(getCoordinateY(mallet.y) - e.getY()) < Physics.MalletRadius)) {
                     
                     mallet.x = getClippedX(getCoordinateX(e.getX()), gameArea);
                     mallet.y = getClippedY(getCoordinateY(e.getY()), gameArea);
@@ -205,10 +206,10 @@ public class ClientFrame extends javax.swing.JFrame {
         }
 
         public int getClippedX(int oldX, Rectangle rect) {
-            if (oldX <= currentState.getMalletRadius()) {
-                return currentState.getMalletRadius();
+            if (oldX <= Physics.MalletRadius) {
+                return (int)Physics.MalletRadius;
             } else {
-                return Math.min(oldX, rect.width - currentState.getMalletRadius());
+                return Math.min(oldX, rect.width - (int)Physics.MalletRadius);
             }
         }
 
@@ -219,15 +220,15 @@ public class ClientFrame extends javax.swing.JFrame {
                 delta = rect.height / 2;
             }
 
-            if (oldY <= delta + currentState.getMalletRadius()) {
-                return delta + currentState.getMalletRadius();
+            if (oldY <= delta + Physics.MalletRadius) {
+                return delta + (int)Physics.MalletRadius;
             } else {
                 if (player_num == 1) {
                     delta = rect.height / 2;
                 } else {
                     delta = 0;
                 }
-                return Math.min(oldY, rect.height - delta - currentState.getMalletRadius());
+                return Math.min(oldY, rect.height - delta - (int)Physics.MalletRadius);
             }
         }
 
@@ -255,7 +256,7 @@ public class ClientFrame extends javax.swing.JFrame {
         
         DrawPanel panel = new DrawPanel();
         panel.setBackground(Color.white);
-        panel.setSize(new Dimension(400, 700));
+        panel.setSize(Physics.Field);
         this.add(panel);
         setVisible(true);
         
@@ -270,7 +271,7 @@ public class ClientFrame extends javax.swing.JFrame {
         
         currentState = new AirHockeyState();
         incomingState = new AirHockeyState();
-        gameArea = new Rectangle(0, 0, 400, 700);
+        gameArea = new Rectangle(Physics.Field);
     }
 
     /**
@@ -294,9 +295,6 @@ public class ClientFrame extends javax.swing.JFrame {
         startGameButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setAlwaysOnTop(true);
-        setPreferredSize(new java.awt.Dimension(410, 935));
-        setResizable(false);
 
         connect.setText("Connect");
         connect.addActionListener(new java.awt.event.ActionListener() {
@@ -336,7 +334,7 @@ public class ClientFrame extends javax.swing.JFrame {
 
         nameTextField.setText("Your name");
 
-        startGameButton.setText("Start");
+        startGameButton.setText("READY");
         startGameButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 startGameButtonActionPerformed(evt);
@@ -348,46 +346,53 @@ public class ClientFrame extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(nameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(startGameButton, javax.swing.GroupLayout.PREFERRED_SIZE, 156, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(320, 320, 320)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(connect, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(b_disconnect, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addGap(29, 29, 29)
-                        .addComponent(lb_address, javax.swing.GroupLayout.DEFAULT_SIZE, 56, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(tf_address, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(19, 19, 19)
-                        .addComponent(lb_port, javax.swing.GroupLayout.DEFAULT_SIZE, 35, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(tf_port, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPane1))
-                .addContainerGap())
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(nameTextField, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(tf_address)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(lb_address, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(0, 0, Short.MAX_VALUE)))
+                                .addGap(18, 18, 18)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(tf_port, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(lb_port, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                .addComponent(connect, javax.swing.GroupLayout.DEFAULT_SIZE, 91, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24, Short.MAX_VALUE)
+                                .addComponent(b_disconnect)))
+                        .addGap(10, 10, 10))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(startGameButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(578, Short.MAX_VALUE)
+                .addGap(10, 10, 10)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 309, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(nameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(nameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(startGameButton))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(lb_address)
+                    .addComponent(lb_port))
+                .addGap(5, 5, 5)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(tf_address, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(tf_port, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(connect)
-                    .addComponent(lb_address)
-                    .addComponent(tf_address, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lb_port)
-                    .addComponent(tf_port, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(b_disconnect)
-                .addGap(4, 4, 4))
+                    .addComponent(b_disconnect))
+                .addGap(18, 18, 18)
+                .addComponent(startGameButton, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(90, Short.MAX_VALUE))
         );
 
         startGameButton.getAccessibleContext().setAccessibleName("startGameButton");
@@ -453,11 +458,11 @@ public class ClientFrame extends javax.swing.JFrame {
 
     private void changeGameStatus(boolean status) {
         if (player_num == 1) {
-            mallet = new Point(gameArea.width / 2, 50);
+            mallet = new Point(gameArea.width / 2, (int)Physics.MalletRadius + 10);
             currentState.setMallet1(mallet);
             currentState.isFirstReady = status;
         } else {
-            mallet = new Point(gameArea.width / 2, gameArea.height - 50);
+            mallet = new Point(gameArea.width / 2, gameArea.height - (int)Physics.MalletRadius - 10);
             currentState.setMallet2(mallet);
             currentState.isSecondReady = status;
         }

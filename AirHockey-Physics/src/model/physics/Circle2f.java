@@ -327,14 +327,15 @@ public class Circle2f
         // v2' = v2
         
         // Нормированный вектор из центра 1 шара в центр 2
-//        Vector2f n = position.sub(other.position).normalize();
+        //Vector2f n = other.position.sub(position).normalize();
+        //Vector2f n = position.sub(other.position).normalize();
         // Найти коэффициент проекции каждого вектора скорости на n
-//        float a1 = velocity.dot(n);
-//        float a2 = other.velocity.dot(n);
+        //float a1 = velocity.dot(n);
+        //float a2 = other.velocity.dot(n);
 
         // Пересчитать вектора скоростей
         // v1' = v1 - 2 * (a1 - a2) * m2 * n
-//        velocity = velocity.sub(n.mult(a1 - a2));
+        //velocity = velocity.sub(n.mult(a1 - a2));
         // v2' = v2
     }
 

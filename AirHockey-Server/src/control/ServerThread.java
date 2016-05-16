@@ -1,6 +1,8 @@
 package control;
 
 import model.database.DBInterface;
+import model.physics.Physics;
+import model.physics.AirHockeyState;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -29,8 +31,8 @@ public class ServerThread extends Thread {
     ClientThread player_1, player_2;
     int client_count = 0;
     
-    model.physics.AirHockeyState currentState;
-    model.physics.AirHockeyState incomingState;
+    AirHockeyState currentState;
+    AirHockeyState incomingState;
     
     GameCycle gameCycle;
     DBInterface dbInterface;
@@ -40,14 +42,14 @@ public class ServerThread extends Thread {
         
         DrawPanel panel = new DrawPanel();
         panel.setBackground(Color.white);
-        panel.setSize(new Dimension(400, 700));
-        panel.setLocation(50, 50);
+        panel.setSize(Physics.Field);
+        panel.setLocation(20, 20);
         mainPanel.add(panel);
         mainPanel.pack();
         mainPanel.setVisible(true);
         
-        currentState = new model.physics.AirHockeyState();
-        incomingState = new model.physics.AirHockeyState();
+        currentState = new AirHockeyState();
+        incomingState = new AirHockeyState();
         
         gameCycle = new GameCycle(currentState);
         dbInterface = new DBInterface(log);
@@ -69,12 +71,12 @@ public class ServerThread extends Thread {
         while (f == true) {
             try {
                 Socket clientSocket = ss.accept();
-                model.physics.AirHockeyState m = new model.physics.AirHockeyState();
+                AirHockeyState m = new AirHockeyState();
                 
                 ClientThread ct = new ClientThread(this, clientSocket);
                 
                 if (dbInterface.findUserByName(ct.getPlayerName()) == 0) {
-                    addToLog("Player not found. Add " + ct.getPlayerName() + " to game DB.");
+                    addToLog("Player not found. Added " + ct.getPlayerName() + " to game DB.");
                     dbInterface.addUser(ct.getPlayerName());
                 }
                 
@@ -93,7 +95,7 @@ public class ServerThread extends Thread {
                 
                 //ct.sendMessage(m);
 
-                addToLog("Player " + ct.getPlayerName() + " connect to the game.");
+                addToLog("Player " + ct.getPlayerName() + " connected to the game.");
             } catch (IOException | SQLException ex) {
                 Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -104,7 +106,6 @@ public class ServerThread extends Thread {
         public DrawPanel() {
             super();
             new Thread(this).start();
-
         }
 
         @Override
@@ -112,7 +113,7 @@ public class ServerThread extends Thread {
             while (true) {
                 repaint();
                 try {
-                        Thread.sleep(5);
+                    Thread.sleep(5);
                 } catch (InterruptedException ex) {}
             }
         }
@@ -127,30 +128,30 @@ public class ServerThread extends Thread {
             if (currentState.getMallet1() != null) {
                 g2d.setColor(Color.green);   
                 g2d.fillOval(
-                    currentState.getMallet1().x - currentState.getMalletRadius(),
-                    currentState.getMallet1().y - currentState.getMalletRadius(),
-                    2 * currentState.getMalletRadius(),
-                    2 * currentState.getMalletRadius()
+                    currentState.getMallet1().x - (int)Physics.MalletRadius,
+                    currentState.getMallet1().y - (int)Physics.MalletRadius,
+                    2 * (int)Physics.MalletRadius,
+                    2 * (int)Physics.MalletRadius
                 );
             }
 
             if (currentState.getMallet2() != null) {
                 g2d.setColor(Color.cyan);  
                 g2d.fillOval(
-                    currentState.getMallet2().x - currentState.getMalletRadius(),
-                    currentState.getMallet2().y - currentState.getMalletRadius(),
-                    2 * currentState.getMalletRadius(),
-                    2 * currentState.getMalletRadius()
+                    currentState.getMallet2().x - (int)Physics.MalletRadius,
+                    currentState.getMallet2().y - (int)Physics.MalletRadius,
+                    2 * (int)Physics.MalletRadius,
+                    2 * (int)Physics.MalletRadius
                 );
             }
 
             if (currentState.getPuck() != null) {
                 g2d.setColor(Color.red);   
                 g2d.fillOval(
-                        currentState.getPuck().x - currentState.getPuckRadius(),
-                        currentState.getPuck().y - currentState.getPuckRadius(),
-                        2 * currentState.getPuckRadius(),
-                        2 * currentState.getPuckRadius()
+                    currentState.getPuck().x - (int)Physics.PuckRadius,
+                    currentState.getPuck().y - (int)Physics.PuckRadius,
+                    2 * (int)Physics.PuckRadius,
+                    2 * (int)Physics.PuckRadius
                 );
             }
         }
@@ -180,12 +181,12 @@ public class ServerThread extends Thread {
         stop();
     }
     
-    public synchronized model.physics.AirHockeyState getMessage() {
+    public synchronized AirHockeyState getMessage() {
         return currentState;
     }
     
     public void disconnect(int player_num) {
-        addToLog("Player " + player_num + " has disconnected");
+        addToLog("Player " + player_num + " disconnected");
         
         switch (player_num) {
             case 1: {
@@ -259,7 +260,7 @@ public class ServerThread extends Thread {
         log.append(s + "\n");
     }
     
-    synchronized void sendToAll(model.physics.AirHockeyState message) {
+    synchronized void sendToAll(AirHockeyState message) {
         if (player_1 != null && player_2 != null) {
             player_1.sendMessage(message);
             player_2.sendMessage(message);
