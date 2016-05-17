@@ -1,5 +1,7 @@
 package model.physics;
 
+import java.awt.Point;
+
 // Класс вектор
 public class Vector2f
 {
@@ -83,5 +85,11 @@ public class Vector2f
             return dev(mag);
         else
             return this;
+    }
+    
+    // Вернуть как объект Point
+    public Point toPoint()
+    {
+        return new Point((int)X, (int)Y);
     }
 }

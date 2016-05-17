@@ -59,7 +59,7 @@ public class GameCycle {
         mallets[1] = new Mallet(size.width / 2, size.height - Physics.MalletRadius - 10, Physics.MalletRadius);
         puck = new Circle2f(size.width / 2, size.height / 2, Physics.PuckRadius, Physics.PuckMass);
         
-        state.setPuck(new Point(size.width / 2, size.height / 2));
+        state.setPuck(puck.getPosition().toPoint());
     }
     
     public AirHockeyState calculate(AirHockeyState oldState) {
@@ -236,10 +236,10 @@ public class GameCycle {
     private void handleGoal(boolean isFirst) {
         if (isFirst) {
             this.state.firstScore++;
-            puck = new Circle2f(size.width/2, size.height/2 - 100, Physics.PuckRadius, Physics.PuckMass);
+            puck = new Circle2f(size.width/2, size.height/2 - Physics.PuckRadius - 10, Physics.PuckRadius, Physics.PuckMass);
         } else {
             this.state.secondScore++;
-            puck = new Circle2f(size.width/2, size.height/2 + 100, Physics.PuckRadius, Physics.PuckMass);
+            puck = new Circle2f(size.width/2, size.height/2 + Physics.PuckRadius + 10, Physics.PuckRadius, Physics.PuckMass);
         }
     }
 }
