@@ -14,6 +14,8 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.SQLException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
@@ -36,6 +38,7 @@ public class ServerThread extends Thread {
     
     GameCycle gameCycle;
     DBInterface dbInterface;
+    Thread gameThread;
     
     public ServerThread(JTextArea log, JFrame mainPanel) {
         this.log = log;
@@ -85,7 +88,6 @@ public class ServerThread extends Thread {
                     m.setPlayerNum(1);
                     ct.setPlayerNum(1);
                     ct.sendMessage(m);
-                    
                 } else if (player_2 == null) {
                     player_2 = ct;
                     m.setPlayerNum(2);
@@ -164,21 +166,19 @@ public class ServerThread extends Thread {
         if (player_1 != null) {
             player_1.sendMessage(currentState);
             player_1.Disconnect();
-            player_1.interrupt();
-            player_1 = null;
+            disconnect(1);
         }
         if (player_2 != null) {
             player_2.sendMessage(currentState);
             player_2.Disconnect();
-            player_2.interrupt();
-            player_2 = null;
+            disconnect(2);
         }
         try {
             ss.close();
         } catch (IOException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
         }
-        stop();
+        interrupt();
     }
     
     public synchronized AirHockeyState getMessage() {
@@ -187,68 +187,91 @@ public class ServerThread extends Thread {
     
     public void disconnect(int player_num) {
         addToLog("Player " + player_num + " disconnected");
-        
+        if (gameThread != null) {
+            gameThread.interrupt();
+            gameThread = null;
+        }
         switch (player_num) {
             case 1: {
                 player_1.interrupt();
                 player_1 = null;
+                sendGameOver("Player 1 has disconnected\n", player_2);
                 break;
             }
             case 2: {
                 player_2.interrupt();
                 player_2 = null;
+                sendGameOver("Player 2 has disconnected\n", player_1);
                 break;
             }
         }
+        reset();
+    }
+    
+    public void sendGameOver(String message, ClientThread player) {
+        AirHockeyState state = new AirHockeyState();
+        state.message = message;
+        state.isGameOver = true;
+        player.sendMessage(state);
+    }
+    
+    private void reset(){
+        currentState = new AirHockeyState();
+        incomingState = new AirHockeyState();
+        gameCycle = new GameCycle(currentState);
     }
     
     public void game() {
-        new Thread() {
-            @Override
-            public void run() {
-                while(true) {
-                    Point m1 = null, m2 = null;
+        if (gameThread == null) {
+            addToLog("new game");
+            gameThread = new Thread() {
+                @Override
+                public void run() {
+                    while(true) {
+                        Point m1 = null, m2 = null;
 
-                    if (player_1 != null) {
-                        m1 = player_1.getMes().getMallet1();
+                        if (player_1 != null) {
+                            m1 = player_1.getMes().getMallet1();
 
-                        currentState.isFirstReady = player_1.getMes().isFirstReady;
-                        if (m1 != null) {
-                            incomingState.setMallet1(m1);
-                       }
-                    }
-
-                    if (player_2 != null) {
-                        m2 = player_2.getMes().getMallet2(); 
-                        
-                        currentState.isSecondReady = player_2.getMes().isSecondReady;
-                        if (m2 != null) {
-                            incomingState.setMallet2(m2);
-                        }
-                    }
-
-                    if (m1 != null && m2 != null) {
-                        if (currentState.isFirstReady && currentState.isSecondReady) {
-                            currentState.isGame = true;
-                            currentState = gameCycle.calculate(incomingState);
-                            sendToAll(currentState);
-                        } else {
-                            currentState.isGame = false;
+                            currentState.isFirstReady = player_1.getMes().isFirstReady;
+                            if (m1 != null) {
+                                incomingState.setMallet1(m1);
+                           }
                         }
 
-                        float elapsedMilliTime = gameCycle.getElapsedNanoTime() / 1000.0f;
-                        float toSleep = 17.0f - elapsedMilliTime;
-                        if (toSleep > 0.0f) {
-                            try {
-                                Thread.sleep((long)toSleep);
-                            } catch (InterruptedException ex) {
-                                Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+                        if (player_2 != null) {
+                            m2 = player_2.getMes().getMallet2(); 
+
+                            currentState.isSecondReady = player_2.getMes().isSecondReady;
+                            if (m2 != null) {
+                                incomingState.setMallet2(m2);
+                            }
+                        }
+
+                        if (m1 != null && m2 != null) {
+                            if (currentState.isFirstReady && currentState.isSecondReady) {
+                                currentState.isGame = true;
+                                currentState = gameCycle.calculate(incomingState);
+                                sendToAll(currentState);
+                            } else {
+                                currentState.isGame = false;
+                            }
+
+                            float elapsedMilliTime = gameCycle.getElapsedNanoTime() / 1000.0f;
+                            float toSleep = 17.0f - elapsedMilliTime;
+                            if (toSleep > 0.0f) {
+                                try {
+                                    Thread.sleep((long)toSleep);
+                                } catch (InterruptedException ex) {
+                                    Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
+                                }
                             }
                         }
                     }
                 }
-            }
-        }.start();
+            };
+            gameThread.start();
+        }
     }
     
     public void setConnectionData(InetAddress _ip, int _port) {

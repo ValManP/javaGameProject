@@ -9,7 +9,7 @@ public class AirHockeyState implements Serializable {
     private String player_name;
     
     // Game data
-    public boolean isPaused = true;
+    public boolean isGameOver = false;
     public boolean isFirstReady = false;
     public boolean isSecondReady = false;
     public boolean isGame = false;
@@ -21,6 +21,8 @@ public class AirHockeyState implements Serializable {
     
     public int firstScore = 0;
     public int secondScore = 0;
+    
+    public String message;
     
     public AirHockeyState(Point puck, Point mallet1, Point mallet2) {
         this.puck = puck;

@@ -3,10 +3,8 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/My%20Documents/University/Java/AirHockey/AirHockey-Server/src/control/ClientThread.java</file>
-            <file>file:/D:/My%20Documents/University/Java/AirHockey/AirHockey-Server/src/control/GameCycle.java</file>
-            <file>file:/D:/My%20Documents/University/Java/AirHockey/AirHockey-Server/src/control/ServerThread.java</file>
-            <file>file:/D:/My%20Documents/University/Java/AirHockey/AirHockey-Server/src/view/ServerFrame.java</file>
+            <file>file:/C:/Users/pozdv/Documents/AirHockey/AirHockey-Server/src/control/ServerThread.java</file>
+            <file>file:/C:/Users/pozdv/Documents/AirHockey/AirHockey-Server/src/control/ClientThread.java</file>
         </group>
     </open-files>
 </project-private>

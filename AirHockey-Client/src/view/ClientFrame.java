@@ -51,7 +51,9 @@ public class ClientFrame extends javax.swing.JFrame {
         public void run() {
             try {
                 while (inputStream != null) {
+                    
                     incomingState = (AirHockeyState)inputStream.readObject();
+                    
 
                     if (incomingState.getMallet1() != null) {
                         currentState.setMallet1(incomingState.getMallet1());
@@ -63,9 +65,18 @@ public class ClientFrame extends javax.swing.JFrame {
                         currentState.setPuck(incomingState.getPuck());
                     }
                     
-                    if (incomingState.isGame && !currentState.isGame) {
+                    if (incomingState.isGame && !currentState.isGame && !currentState.isDisconnected()) {
                         startGame();
                         currentState.isGame = incomingState.isGame;
+                    }
+                    
+                    if (!incomingState.isGame && currentState.isGame) {
+                        logArea.append(incomingState.message);
+                        logArea.append("Click READY for new game\n");
+                        reset();
+                        changeGameStatus(false);
+                        sendMessage();
+                        incomingState.isGame = true;
                     }
                     
                     handleScore(incomingState);
@@ -98,12 +109,15 @@ public class ClientFrame extends javax.swing.JFrame {
      */
     public class DrawPanel extends JPanel implements Runnable, MouseInputListener {
         private long t = System.nanoTime();
+        
+        ClientFrame client;
 
-        public DrawPanel() {
+        public DrawPanel(ClientFrame client) {
             super();
             addMouseListener(this);
             addMouseMotionListener(this);
             setLocation(10, 10);
+            this.client = client;
             new Thread(this).start();
         }
 
@@ -193,14 +207,7 @@ public class ClientFrame extends javax.swing.JFrame {
                         currentState.setMallet2(mallet);
                     }
                     
-                    if (outputStream != null && !socket.isClosed()) {
-                        try {
-                            outputStream.reset();
-                            outputStream.writeObject(currentState);
-                        } catch (IOException ex) {
-                            Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
+                    client.sendMessage();
                 }
             }
         }
@@ -254,7 +261,7 @@ public class ClientFrame extends javax.swing.JFrame {
     public ClientFrame() {
         initComponents();
         
-        DrawPanel panel = new DrawPanel();
+        DrawPanel panel = new DrawPanel(this);
         panel.setBackground(Color.white);
         panel.setSize(Physics.Field);
         this.add(panel);
@@ -448,12 +455,14 @@ public class ClientFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_tf_portActionPerformed
 
     private void b_disconnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_b_disconnectActionPerformed
+        currentState.isGame = false;
         sendDisconnect();
-        Disconnect();
     }//GEN-LAST:event_b_disconnectActionPerformed
 
     private void startGameButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_startGameButtonActionPerformed
         changeGameStatus(true);
+        sendMessage();
+        logArea.append("Ready for game.\n");
     }//GEN-LAST:event_startGameButtonActionPerformed
 
     private void changeGameStatus(boolean status) {
@@ -468,28 +477,25 @@ public class ClientFrame extends javax.swing.JFrame {
         }
 
         currentState.setPuck(new Point(gameArea.width / 2, gameArea.height / 2));
-        sendMes();
     }
     
     public void sendDisconnect() {
-        try {
-            currentState.setDisconnectedPlayer(player_num);
-            outputStream.reset();
-            outputStream.writeObject(currentState);
-            currentState.setDisconnectedPlayer(0);
-        } catch (Exception e) {
-            logArea.append("Could not send Disconnect message.\n");
-        }
+        changeGameStatus(false);
+        currentState.setDisconnected(true);
+        sendMessage();
     }
     
     public void Disconnect() {
         try  {
             isConnected = false;
+            reset();
+            inputStream.close();
+            outputStream.close();
+            incomingReader.interrupt();
             logArea.append("Disconnected.\n");
-            incomingReader.stop();
             socket.close();
         } catch(Exception ex) {
-            logArea.append("Failed to disconnect. \n");
+            logArea.append("Failed to disconnect.\n");
         }
     }
     
@@ -512,12 +518,14 @@ public class ClientFrame extends javax.swing.JFrame {
         }
     }
     
-    public void sendMes() {
-        try {
-            outputStream.reset();
-            outputStream.writeObject(currentState);
-        } catch (IOException ex) {
-            Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
+    public void sendMessage() {
+        if (outputStream != null && !socket.isClosed()) {
+            try {
+                outputStream.reset();
+                outputStream.writeObject(currentState);
+            } catch (IOException ex) {
+                Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
     
@@ -528,10 +536,17 @@ public class ClientFrame extends javax.swing.JFrame {
                 logArea.append(i + "...");
                 Thread.sleep(1000);
             }
-            logArea.append("\nStart!");
+            logArea.append("\nStart!\n");
         } catch (InterruptedException ex) {
             Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    
+    private void reset() {
+        currentState = new AirHockeyState();
+        //incomingState = new AirHockeyState();
+        mallet = null;
     }
     
     /**

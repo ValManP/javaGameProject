@@ -16,7 +16,7 @@ public class ClientThread extends Thread {
     private ObjectOutputStream outputStream;
     
     private AirHockeyState incomingState;   
-    private int player_num = -1; 
+    private int player_num = 0; 
     private String player_name;
     
     JTextArea log;
@@ -60,9 +60,8 @@ public class ClientThread extends Thread {
                     try {
                         incomingState = (AirHockeyState)inputStream.readObject();
 
-                        if (incomingState.getDisconnectedPlayer() != 0) {
-                            incomingState.setDisconnectedPlayer(0);
-                            Disconnect();
+                        if (incomingState.isDisconnected()) {
+                            confirmDisconnect();
                             st.disconnect(player_num);
                         }
 
@@ -81,7 +80,7 @@ public class ClientThread extends Thread {
        return incomingState;
     }
     
-    public synchronized void sendMessage(AirHockeyState m) {
+    public void sendMessage(AirHockeyState m) {
         try {
             outputStream.reset();
             outputStream.writeObject(m);
@@ -92,11 +91,16 @@ public class ClientThread extends Thread {
     
     public synchronized void Disconnect() {
         try {
-            //sendMessage(new Client.State(true));
             cs.close();
         } catch(Exception ex) {
             log.append("Failed to disconnect.\n");
         }
+    }
+    
+    public void confirmDisconnect() {
+        AirHockeyState disconnectState = new AirHockeyState();
+        disconnectState.setDisconnected(true);
+        sendMessage(disconnectState);
     }
     
     public boolean checkReadiness(AirHockeyState m) {
