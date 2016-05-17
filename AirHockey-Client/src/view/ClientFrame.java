@@ -302,6 +302,7 @@ public class ClientFrame extends javax.swing.JFrame {
         startGameButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setResizable(false);
 
         connect.setText("Connect");
         connect.addActionListener(new java.awt.event.ActionListener() {
