@@ -100,6 +100,11 @@ public class ClientThread extends Thread {
     public void confirmDisconnect() {
         AirHockeyState disconnectState = new AirHockeyState();
         disconnectState.setDisconnected(true);
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
+        }
         sendMessage(disconnectState);
     }
     

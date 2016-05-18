@@ -54,7 +54,6 @@ public class ClientFrame extends javax.swing.JFrame {
                     
                     incomingState = (AirHockeyState)inputStream.readObject();
                     
-
                     if (incomingState.getMallet1() != null) {
                         currentState.setMallet1(incomingState.getMallet1());
                     }
@@ -65,19 +64,21 @@ public class ClientFrame extends javax.swing.JFrame {
                         currentState.setPuck(incomingState.getPuck());
                     }
                     
-                    if (incomingState.isGame && !currentState.isGame && !currentState.isDisconnected()) {
+                    if (incomingState.isGame && !currentState.isGame) {
                         startGame();
                         currentState.isGame = incomingState.isGame;
                     }
                     
-                    if (!incomingState.isGame && currentState.isGame) {
+                    if (!incomingState.isGame && currentState.isGame && incomingState.isGameOver) {
                         logArea.append(incomingState.message);
                         logArea.append("Click READY for new game\n");
                         reset();
                         changeGameStatus(false);
                         sendMessage();
-                        incomingState.isGame = true;
+                        incomingState.isGame = false;
+                        currentState.isGame = false;
                     }
+                    
                     
                     handleScore(incomingState);
                     
@@ -188,8 +189,13 @@ public class ClientFrame extends javax.swing.JFrame {
 
             g2d.setFont(font);
             g2d.setColor(Color.CYAN);
-            g2d.drawString(String.valueOf(currentState.secondScore), Physics.Field.width - 35, Physics.Field.height / 2 - 20);
-            g2d.drawString(String.valueOf(currentState.firstScore), Physics.Field.width - 35, Physics.Field.height / 2 + 40);
+            if (player_num == 2) {
+                g2d.drawString(String.valueOf(currentState.secondScore), Physics.Field.width - 35, Physics.Field.height / 2 - 20);
+                g2d.drawString(String.valueOf(currentState.firstScore), Physics.Field.width - 35, Physics.Field.height / 2 + 40);
+            } else {
+                g2d.drawString(String.valueOf(currentState.firstScore), Physics.Field.width - 35, Physics.Field.height / 2 - 20);
+                g2d.drawString(String.valueOf(currentState.secondScore), Physics.Field.width - 35, Physics.Field.height / 2 + 40);
+            }
         }
 
         @Override
@@ -546,7 +552,7 @@ public class ClientFrame extends javax.swing.JFrame {
     
     private void reset() {
         currentState = new AirHockeyState();
-        //incomingState = new AirHockeyState();
+        incomingState = new AirHockeyState();
         mallet = null;
     }
     

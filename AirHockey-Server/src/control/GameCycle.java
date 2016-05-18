@@ -19,6 +19,8 @@ public class GameCycle {
     Wall2f[] walls;
     Mallet[] mallets;
     Circle2f puck;
+    
+    public static final int MAX_SCORE = 1;
         
     // Скорость игры
     float dt = 0.015f;
@@ -234,7 +236,7 @@ public class GameCycle {
     }
     
     private void handleGoal(boolean isFirst) {
-        if (isFirst) {
+        if (!isFirst) {
             this.state.firstScore++;
             puck = new Circle2f(size.width/2, size.height/2 - Physics.PuckRadius - 10, Physics.PuckRadius, Physics.PuckMass);
         } else {

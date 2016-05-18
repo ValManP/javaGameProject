@@ -223,7 +223,7 @@ public class ServerThread extends Thread {
     
     public void game() {
         if (gameThread == null) {
-            addToLog("new game");
+            addToLog("New game");
             gameThread = new Thread() {
                 @Override
                 public void run() {
@@ -252,11 +252,12 @@ public class ServerThread extends Thread {
                             if (currentState.isFirstReady && currentState.isSecondReady) {
                                 currentState.isGame = true;
                                 currentState = gameCycle.calculate(incomingState);
+                                handleGameOver();
                                 sendToAll(currentState);
                             } else {
                                 currentState.isGame = false;
                             }
-
+/*
                             float elapsedMilliTime = gameCycle.getElapsedNanoTime() / 1000.0f;
                             float toSleep = 17.0f - elapsedMilliTime;
                             if (toSleep > 0.0f) {
@@ -265,13 +266,13 @@ public class ServerThread extends Thread {
                                 } catch (InterruptedException ex) {
                                     Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
                                 }
-                            }
+                            }*/
                         }
                     }
                 }
             };
             gameThread.start();
-        }
+       }
     }
     
     public void setConnectionData(InetAddress _ip, int _port) {
@@ -287,6 +288,35 @@ public class ServerThread extends Thread {
         if (player_1 != null && player_2 != null) {
             player_1.sendMessage(message);
             player_2.sendMessage(message);
+        }
+    }
+    
+    private void handleGameOver() {
+        if (currentState.firstScore == GameCycle.MAX_SCORE 
+                || currentState.secondScore == GameCycle.MAX_SCORE) {
+            saveGame();
+            if (gameThread != null) {
+                gameThread.interrupt();
+                gameThread = null;
+            }
+            if (currentState.firstScore == GameCycle.MAX_SCORE) {
+                sendGameOver("You win\n", player_1);
+                sendGameOver("You lose\n", player_2);
+            } else if (currentState.secondScore == GameCycle.MAX_SCORE) {
+                sendGameOver("You lose\n", player_1);
+                sendGameOver("You win\n", player_2);
+            }
+            reset();
+        }
+    }
+    
+    private void saveGame() {
+        try {
+            dbInterface.addGame(player_1.getPlayerName(),
+                    player_2.getPlayerName(),
+                    currentState.firstScore, currentState.secondScore);
+        } catch (SQLException ex) {
+            Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }
