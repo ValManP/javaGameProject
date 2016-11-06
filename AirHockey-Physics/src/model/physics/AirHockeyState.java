@@ -3,10 +3,9 @@ package model.physics;
 import java.io.Serializable;
 import java.awt.Point;
 
-public class AirHockeyState implements Serializable {
+public class AirHockeyState extends State implements Serializable {
     // Player data
     private int player_num;
-    private String player_name;
     
     // Game data
     public boolean isGameOver = false;
@@ -82,13 +81,5 @@ public class AirHockeyState implements Serializable {
 
     public void setDisconnected(boolean disconnected) {
         this.disconnected = disconnected;
-    }
-    
-    public String getPlayerName() {
-        return player_name;
-    }
-
-    public void setPlayerName(String player_name) {
-        this.player_name = player_name;
     }
 }

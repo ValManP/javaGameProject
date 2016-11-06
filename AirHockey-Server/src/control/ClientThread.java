@@ -41,6 +41,12 @@ public class ClientThread extends Thread {
             
             do {
                 incomingState = (AirHockeyState)inputStream.readObject();
+                
+                if(incomingState.getIsAndroid()) {
+                    new AndroidClient(st.dbInterface, cs);
+                    return;
+                }
+                
                 player_name = incomingState.getPlayerName();
             } while (incomingState.getPlayerName() == null);
             

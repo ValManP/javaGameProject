@@ -123,9 +123,6 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="localhost"/>
       </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tf_addressActionPerformed"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="lb_port">
       <Properties>
@@ -136,9 +133,6 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="2222"/>
       </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="tf_portActionPerformed"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="b_disconnect">
       <Properties>
