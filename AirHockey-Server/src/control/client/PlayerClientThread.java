@@ -1,20 +1,14 @@
-package control;
+package control.client;
 
+import control.ServerThread;
 import model.physics.AirHockeyState;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JTextArea;
 
-public class ClientThread extends Thread {
-    protected ServerThread st;
-    private Socket cs;
-    private ObjectInputStream inputStream;
-    private ObjectOutputStream outputStream;
-    
+public class PlayerClientThread extends ClientThread {    
     private AirHockeyState incomingState;   
     private int player_num = 0; 
     private String player_name;
@@ -29,31 +23,21 @@ public class ClientThread extends Thread {
         return this.player_name;
     }
     
-    public ClientThread(ServerThread st, Socket cs) {
-        incomingState = new AirHockeyState();
-        
-        this.st = st;
-        this.cs = cs;
-        
+    public PlayerClientThread(ServerThread serverThread, Socket clientSocket) {
+        super(serverThread, clientSocket);
         try {
-            inputStream = new ObjectInputStream(cs.getInputStream());
-            outputStream = new ObjectOutputStream(cs.getOutputStream());
-            
+            incomingState = new AirHockeyState();
+
             do {
                 incomingState = (AirHockeyState)inputStream.readObject();
-                
-                if(incomingState.getIsAndroid()) {
-                    new AndroidClient(st.dbInterface, cs);
-                    return;
-                }
-                
                 player_name = incomingState.getPlayerName();
             } while (incomingState.getPlayerName() == null);
             
-            this.start();
         } catch (IOException | ClassNotFoundException ex) {
             Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        this.start();
     }
 
     @Override
@@ -68,11 +52,11 @@ public class ClientThread extends Thread {
 
                         if (incomingState.isDisconnected()) {
                             confirmDisconnect();
-                            st.disconnect(player_num);
+                            serverThread.getConnectionController().disconnect(player_num);
                         }
 
                         if (checkReadiness(incomingState)) {
-                            st.game();
+                            serverThread.getGameController().game();
                         }
                     } catch (IOException | ClassNotFoundException ex) {
                         Logger.getLogger(ClientThread.class.getName()).log(Level.SEVERE, null, ex);
@@ -97,8 +81,8 @@ public class ClientThread extends Thread {
     
     public synchronized void Disconnect() {
         try {
-            cs.close();
-        } catch(Exception ex) {
+            clientSocket.close();
+        } catch(IOException ex) {
             log.append("Failed to disconnect.\n");
         }
     }
@@ -114,13 +98,13 @@ public class ClientThread extends Thread {
         sendMessage(disconnectState);
     }
     
-    public boolean checkReadiness(AirHockeyState m) {
+    public boolean checkReadiness(AirHockeyState gameState) {
         if (player_num == 1) {
-            st.currentState.isFirstReady = m.isFirstReady; 
+            serverThread.getCurrentState().isFirstReady = gameState.isFirstReady; 
         } else {
-            st.currentState.isSecondReady = m.isSecondReady;
+            serverThread.getCurrentState().isSecondReady = gameState.isSecondReady;
         }
         
-        return st.currentState.isFirstReady && st.currentState.isSecondReady;
+        return serverThread.getCurrentState().isFirstReady && serverThread.getCurrentState().isSecondReady;
     }
 }
