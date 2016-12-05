@@ -14,6 +14,7 @@ public class Physics
     // Скорость игры (для использования с таймером)
     // На разных компьютерах должна быть своя
     //public static final float dt = 0.04f;
+    // ---------- Главные параметры игры ---------- //
     // Размер игрового поля
     public static final Dimension Field = new Dimension(300, 600);
     // Радиус щетки
@@ -22,4 +23,6 @@ public class Physics
     public static final float PuckRadius = 20.0f;
     // Масса шайбы
     public static final float PuckMass = 50.0f;
+    // Добавка к скорости при наложении
+    public static final float VelocityIncrease = 2.0f;
 }

@@ -58,16 +58,17 @@ public class GameController implements IGameController {
                             } else {
                                 gameData.currentState.isGame = false;
                             }
-/*
-                            float elapsedMilliTime = gameCycle.getElapsedNanoTime() / 1000.0f;
-                            float toSleep = 17.0f - elapsedMilliTime;
+
+                            // Контроль ФПС - сервер оперирует на частоте 30 к/с
+                            float elapsedMilliTime = gameData.gameCycle.getElapsedNanoTime() / 1000.0f;
+                            float toSleep = 35.0f - elapsedMilliTime;
                             if (toSleep > 0.0f) {
                                 try {
                                     Thread.sleep((long)toSleep);
                                 } catch (InterruptedException ex) {
                                     Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
                                 }
-                            }*/
+                            }
                         }
                     }
                 }

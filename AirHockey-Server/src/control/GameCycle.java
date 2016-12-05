@@ -20,7 +20,7 @@ public class GameCycle {
     Mallet[] mallets;
     Circle2f puck;
     
-    public static final int MAX_SCORE = 1;
+    public static final int MAX_SCORE = 10;
         
     // Скорость игры
     float dt = 0.015f;
@@ -216,7 +216,7 @@ public class GameCycle {
                     puck.stop();
                     puck.pushAwayFrom(mallets[i]);
 
-                    puck.addVelocity(N.mult(2.0f * dist * Math.signum(view.dot(N))));
+                    puck.addVelocity(N.mult(Physics.VelocityIncrease * dist * Math.signum(view.dot(N))));
                     //puck.correctVelocity(maxVelocity);
                 } else {
                     // Вектор, показывающий, куда нужно оттолкнуть шайбу

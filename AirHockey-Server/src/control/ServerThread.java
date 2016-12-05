@@ -60,7 +60,7 @@ public class ServerThread extends Thread {
                 PlayerClientThread newClient = new PlayerClientThread(this, clientSocket);
 
                 if (gameData.dbInterface.findUserByName(newClient.getPlayerName()) == 0) {
-                    log.append("\nPlayer not found. Added " + newClient.getPlayerName() + " to game DB.");
+                    log.append("Player not found. Added " + newClient.getPlayerName() + " to game DB.\n");
                     gameData.dbInterface.addUser(newClient.getPlayerName());
                 }
 
@@ -74,7 +74,7 @@ public class ServerThread extends Thread {
                 
                 //ct.sendMessage(m);
 
-                log.append("\nPlayer " + newClient.getPlayerName() + " connected to the game.");
+                log.append("Player " + newClient.getPlayerName() + " connected to the game.\n");
             }
         } catch (IOException | SQLException ex) {
             Logger.getLogger(ServerThread.class.getName()).log(Level.SEVERE, null, ex);
