@@ -45,7 +45,7 @@ public class ConnectionController implements IConnectionController{
                 
                 connectionData.outputStream = new ObjectOutputStream(connectionData.socket.getOutputStream());
                 connectionData.inputStream = new ObjectInputStream(connectionData.socket.getInputStream());
-
+                sendType();
                 sendName(playerName);
 
                 if (gameData.playerNum == -1) {
@@ -115,6 +115,16 @@ public class ConnectionController implements IConnectionController{
             gameData.currentState.setPlayerName(playerName);
             connectionData.outputStream.reset();
             connectionData.outputStream.writeObject(gameData.currentState);
+        } catch (IOException ex) {
+            Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    @Override
+    public void sendType() {
+        try {
+            connectionData.outputStream.reset();
+            connectionData.outputStream.writeUTF("player");
         } catch (IOException ex) {
             Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
         }

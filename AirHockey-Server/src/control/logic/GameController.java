@@ -1,6 +1,5 @@
 package control.logic;
 
-import control.GameCycle;
 import control.ServerThread;
 import control.connect.IConnectionController;
 import java.awt.Point;

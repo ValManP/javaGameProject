@@ -1,9 +1,12 @@
 package model.data;
 
-import control.GameCycle;
+import control.AndroidClient;
+import control.logic.GameCycle;
 import control.ServerThread;
 import control.client.PlayerClientThread;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JTextArea;
@@ -22,9 +25,12 @@ public class GameData {
     public DBInterface dbInterface;
     public Thread gameThread;
     
+    public List<AndroidClient> androidClients;
+    
     public GameData(JTextArea log) {
         currentState = new AirHockeyState();
         incomingState = new AirHockeyState();
+        androidClients = new ArrayList<>();
         
         gameCycle = new GameCycle(currentState);
         dbInterface = new DBInterface(log);

@@ -1,4 +1,4 @@
-package control;
+package control.logic;
 
 import model.physics.AirHockeyState;
 import model.physics.Circle2f;

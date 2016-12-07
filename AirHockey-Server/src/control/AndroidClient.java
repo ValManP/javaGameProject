@@ -1,5 +1,6 @@
 package control;
 
+import control.client.ClientThread;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -10,23 +11,22 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.database.DBInterface;
 
-public class AndroidClient {
+public class AndroidClient extends ClientThread {
     private ObjectInputStream inputStream;
     private ObjectOutputStream outputStream;
     
-    public AndroidClient(DBInterface dbInterface, Socket cs) {     
+    public String userName;
+    
+    public AndroidClient(ServerThread serverThread, Socket clientSocket, ObjectInputStream inputStream, ObjectOutputStream outputStream) {
+        super(serverThread, clientSocket, inputStream, outputStream);
         try {
-            inputStream = new ObjectInputStream(cs.getInputStream());
+            userName = inputStream.readUTF();
             
-            String userName = inputStream.readUTF();
-            
-            ResultSet userData = dbInterface.findUserGames(dbInterface.findUserByName(userName));
-            
-            outputStream = new ObjectOutputStream(cs.getOutputStream());
+            ResultSet userData = serverThread.gameData.dbInterface.findUserGames(serverThread.gameData.dbInterface.findUserByName(userName));
             
             while(userData.next()) {
-                String gameRow = dbInterface.findUserById(userData.getInt("user1_id")) + " vs. " 
-                        + dbInterface.findUserById(userData.getInt("user2_id")) + " "
+                String gameRow = serverThread.gameData.dbInterface.findUserById(userData.getInt("user1_id")) + " vs. " 
+                        + serverThread.gameData.dbInterface.findUserById(userData.getInt("user2_id")) + " "
                         + userData.getString("score1") + " - " + userData.getString("score2")
                         + String.format("dd.mm.yyyy", userData.getDate("date"));
                 

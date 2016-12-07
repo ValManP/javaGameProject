@@ -1,4 +1,4 @@
-package control;
+package control.ui;
 
 import java.awt.Color;
 import java.awt.Graphics;

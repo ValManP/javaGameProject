@@ -3,6 +3,8 @@ package control.client;
 import control.ServerThread;
 import model.physics.AirHockeyState;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,8 +25,9 @@ public class PlayerClientThread extends ClientThread {
         return this.player_name;
     }
     
-    public PlayerClientThread(ServerThread serverThread, Socket clientSocket) {
-        super(serverThread, clientSocket);
+    public PlayerClientThread(ServerThread serverThread, Socket clientSocket
+            , ObjectInputStream inputStream, ObjectOutputStream outputStream) {
+        super(serverThread, clientSocket, inputStream, outputStream);
         try {
             incomingState = new AirHockeyState();
 

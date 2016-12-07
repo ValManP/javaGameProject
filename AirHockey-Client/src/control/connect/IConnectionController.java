@@ -13,5 +13,5 @@ public interface IConnectionController {
     public void sendMessage();
     void runListenThread();
     void sendName(String playerName);
-    
+    void sendType ();
 }
