@@ -66,6 +66,4 @@ public class GameController implements IGameController {
     public void disconnectGame() {
         gameData.currentState.isGame = false;
     }
-    
-    
 }

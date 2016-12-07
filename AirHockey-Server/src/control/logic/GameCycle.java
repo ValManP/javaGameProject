@@ -236,7 +236,7 @@ public class GameCycle {
     }
     
     private void handleGoal(boolean isFirst) {
-        if (!isFirst) {
+        if (isFirst) {
             this.state.firstScore++;
             puck = new Circle2f(size.width/2, size.height/2 - Physics.PuckRadius - 10, Physics.PuckRadius, Physics.PuckMass);
         } else {
