@@ -101,7 +101,7 @@ public class DBInterface {
         preparedStatement.setInt(2, user_id);
         preparedStatement.execute();
         
-        return resultSet;
+        return  preparedStatement.executeQuery();
     } 
     private static final String Q_ADD_USER = "INSERT INTO users (user_name) VALUES (?);";
     private static final String Q_ADD_GAME = "INSERT INTO games (player1_id, player2_id, player1_score, player2_score, date) "
@@ -111,11 +111,11 @@ public class DBInterface {
     private static final String Q_FIND_USER_BY_ID = "SELECT user_name FROM users WHERE user_id = ?;";
     private static final String Q_FIND_LAST_GAME = "SELECT game_id "
             + "FROM games "
-            + "WHERE user1_id = ? "
-            + "and user2_id = ? and rownum = 1 "
+            + "WHERE player1_id = ? "
+            + "and player2_id = ? and rownum = 1 "
             + "ORDER BY date DESC;";
     private static final String Q_FIND_USER_GAMES = "SELECT * "
             + "FROM games "
-            + "WHERE user1_id = ? OR user2_id = ?"
+            + "WHERE player1_id = ? OR player2_id = ?"
             + "ORDER BY date;";
 }

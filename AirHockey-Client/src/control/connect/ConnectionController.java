@@ -14,9 +14,10 @@ import model.GameData;
 import model.physics.AirHockeyState;
 import view.ClientFrame;
 
-public class ConnectionController implements IConnectionController{
+public class ConnectionController implements IConnectionController {
+
     IGameController gameController;
-    
+
     ConnectionData connectionData;
     GameData gameData;
     JTextArea log;
@@ -30,37 +31,34 @@ public class ConnectionController implements IConnectionController{
 
     @Override
     public void connect(String ipAddress, String port, String playerName) {
-        if (!connectionData.isConnected) 
-        {
-            try 
-            {
+        if (!connectionData.isConnected) {
+            try {
                 if (ipAddress.equals("localhost")) {
                     connectionData.ip = InetAddress.getLocalHost();
                 } else {
                     connectionData.ip = InetAddress.getByName(ipAddress);
                 }
                 connectionData.port = Integer.valueOf(port);
-                 
+
                 connectionData.socket = new Socket(connectionData.ip, connectionData.port);
-                
+
                 connectionData.outputStream = new ObjectOutputStream(connectionData.socket.getOutputStream());
                 connectionData.inputStream = new ObjectInputStream(connectionData.socket.getInputStream());
                 sendType();
                 sendName(playerName);
 
                 if (gameData.playerNum == -1) {
-                      gameData.playerNum = ((AirHockeyState)connectionData.inputStream.readObject()).getPlayerNum();
+                    gameData.playerNum = ((AirHockeyState) connectionData.inputStream.readObject()).getPlayerNum();
                 }
-                
-                connectionData.isConnected = true; 
-                        
+
+                connectionData.isConnected = true;
+
                 log.append("Connected to the server.\n");
                 log.append("You are player #" + gameData.playerNum + ".\n");
-            } 
-            catch (Exception ex) {
+            } catch (Exception ex) {
                 log.append("Cannot Connect! Try Again.\n");
             }
-            
+
             runListenThread();
         } else {
             if (connectionData.isConnected == true) {
@@ -71,7 +69,7 @@ public class ConnectionController implements IConnectionController{
 
     @Override
     public void disconnect() {
-        try  {
+        try {
             connectionData.isConnected = false;
             gameController.resetGame();
             connectionData.inputStream.close();
@@ -79,7 +77,7 @@ public class ConnectionController implements IConnectionController{
             connectionData.incomingReader.interrupt();
             log.append("Disconnected.\n");
             connectionData.socket.close();
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             log.append("Failed to disconnect.\n");
         }
     }
@@ -93,7 +91,7 @@ public class ConnectionController implements IConnectionController{
 
     @Override
     public void sendMessage() {
-       if (connectionData.outputStream != null && !connectionData.socket.isClosed()) {
+        if (connectionData.outputStream != null && !connectionData.socket.isClosed()) {
             try {
                 connectionData.outputStream.reset();
                 connectionData.outputStream.writeObject(gameData.currentState);
@@ -119,7 +117,7 @@ public class ConnectionController implements IConnectionController{
             Logger.getLogger(ClientFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     @Override
     public void sendType() {
         try {

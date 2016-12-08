@@ -62,9 +62,10 @@ public class ServerThread extends Thread {
                 ObjectInputStream inputStream = new ObjectInputStream(clientSocket.getInputStream());
                 ObjectOutputStream outputStream = new ObjectOutputStream(clientSocket.getOutputStream());
                 
-                if (ClientThread.ClientType.PLAYER.equals(getClientType(inputStream))) {
+                ClientThread.ClientType type = getClientType(inputStream);
+                if (ClientThread.ClientType.PLAYER.equals(type)) {
                     createPlayerClient(clientSocket, inputStream, outputStream);
-                } else if (ClientThread.ClientType.ANDROID.equals(getClientType(inputStream))) {
+                } else if (ClientThread.ClientType.ANDROID.equals(type)) {
                     createAndroidClient(clientSocket, inputStream, outputStream);
                 }
                 //ct.sendMessage(m);
