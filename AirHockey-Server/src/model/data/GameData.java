@@ -1,7 +1,7 @@
 package model.data;
 
 import control.AndroidClient;
-import control.logic.GameCycle;
+import model.logic.GameCycle;
 import control.ServerThread;
 import control.client.PlayerClientThread;
 import java.sql.SQLException;

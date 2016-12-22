@@ -1,4 +1,4 @@
-package control.logic;
+package model.logic;
 
 import control.ServerThread;
 import control.connect.IConnectionController;

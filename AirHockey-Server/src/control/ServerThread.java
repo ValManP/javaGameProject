@@ -1,16 +1,15 @@
 package control;
 
-import control.ui.DrawPanel;
+import view.DrawPanel;
 import control.client.ClientThread;
 import control.client.PlayerClientThread;
 import control.connect.ConnectionController;
 import control.connect.IConnectionController;
-import control.logic.GameController;
-import control.logic.IGameController;
+import model.logic.GameController;
+import model.logic.IGameController;
 import model.physics.Physics;
 import model.physics.AirHockeyState;
 import java.awt.Color;
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;

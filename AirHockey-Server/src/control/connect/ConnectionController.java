@@ -1,7 +1,7 @@
 package control.connect;
 
 import control.client.ClientThread;
-import control.logic.GameCycle;
+import model.logic.GameCycle;
 import control.client.PlayerClientThread;
 import javax.swing.JTextArea;
 import model.data.GameData;
